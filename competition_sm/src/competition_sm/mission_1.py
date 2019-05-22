@@ -26,18 +26,36 @@ class WaitForTrafficLightGreenStatus(smach.State):
         self.got_green = False
         self._green_subscriber = rospy.Subscriber('/traffic_light_status',
                                                   String,
+                                                  self._traffic_light_status_cb,
                                                   queue_size=1)
 
-    def traffic_light_status_cb(self, msg):
+    def _traffic_light_status_cb(self, msg):
         status = msg.data.upper()
-        if status.contains('g'):
+        if 'G' in status:
             self.got_green = True
 
     def execute(self, userdata):
         rospy.loginfo('Executing state ' + self.__class__.__name__)
+        # Wait for the traffic signal state detector
+        # to tell us the light is green
         while not rospy.is_shutdown() and not self.got_green:
             rospy.sleep(0.1)
         return 'got_green'
+
+
+class MoveCurve(smach.State):
+    def __init__(self):
+        smach.State.__init__(self, outcomes=['succeeded', 'failed'])
+
+    def execute(self, userdata):
+        rospy.loginfo('Executing state ' + self.__class__.__name__)
+        # Send a goal to our "Move using waypoints" server and wait until
+        # we reach the goal
+
+        rospy.sleep(3)
+        return 'succeeded'
+        # if something went wrong
+        # return 'failed'
 
 
 def mission_1():
@@ -50,11 +68,16 @@ def mission_1():
         # Add states to the container
         smach.StateMachine.add('Move_until_traffic_light',
                                MoveUntilTrafficLight(),
-                               transitions={'succeeded': 'Wait_for_traffic_light_green_status',
-                                            'failed': 'outcome4'})
+                               transitions={
+                                   'succeeded': 'Wait_for_traffic_light_green_status',
+                                   'failed': 'failed'})
         smach.StateMachine.add('Wait_for_traffic_light_green_status',
                                WaitForTrafficLightGreenStatus(),
-                               transitions={'outcome2': 'FOO'})
+                               transitions={'got_green': 'Move_curve'})
+        smach.StateMachine.add('Move_curve',
+                               MoveCurve(),
+                               transitions={'succeeded': 'succeeded',
+                                            'failed': 'failed'})
 
     # Execute SMACH plan
     outcome = sm.execute()
