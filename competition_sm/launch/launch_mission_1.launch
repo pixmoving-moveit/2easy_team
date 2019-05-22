@@ -1,0 +1,13 @@
+<launch>
+
+    <!-- Launch necessary nodes for the mission -->
+    <!-- <node pkg="traffic_light_detector" 
+        name="traffic_light_detector"
+        type="traffic_light_detector.py"
+        output="screen" /> -->
+
+    <!-- Launch the actual mission state machine -->
+    <node pkg="competition_sm" name="mission_1_sm" type="mission_1.py"
+        output="screen"/>
+
+</launch>
