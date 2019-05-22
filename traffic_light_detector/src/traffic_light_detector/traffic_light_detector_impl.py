@@ -61,8 +61,9 @@ class TrafficLightDetector(object):
     def run(self):
         rate = rospy.Rate(10)  # Detect at 10hz
         while not rospy.is_shutdown():
-            result = self.detect_traffic_light(self.last_img)
-            self.pub_traffic_light_status(result)
+            if self.last_img is not None:
+                result = self.detect_traffic_light(self.last_img)
+                self.pub_traffic_light_status(result)
             rate.sleep()
 
 
