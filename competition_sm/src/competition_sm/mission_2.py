@@ -5,7 +5,7 @@ import smach
 from std_msgs.msg import String
 
 
-class MoveUntilTrafficLight(smach.State):
+class MoveUntilZebraCrossing(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['succeeded', 'failed'])
 
@@ -20,28 +20,28 @@ class MoveUntilTrafficLight(smach.State):
         # return 'failed'
 
 
-class WaitForTrafficLightGreenStatus(smach.State):
+class WaitForPedestrianToCross(smach.State):
     def __init__(self):
-        smach.State.__init__(self, outcomes=['got_green'])
-        self.got_green = False
-        self._green_subscriber = rospy.Subscriber('/traffic_light_status',
+        smach.State.__init__(self, outcomes=['pedestrian_crossed'])
+        self.pedestrian_crossed = False
+        self._green_subscriber = rospy.Subscriber('/pedestrian_detection',
                                                   String,
-                                                  self._traffic_light_status_cb,
+                                                  self._pedestrian_status_cb,
                                                   queue_size=1)
 
-    def _traffic_light_status_cb(self, msg):
+    def _pedestrian_status_cb(self, msg):
         status = msg.data.upper()
-        if 'GREEN' in status:
-            self.got_green = True
+        if 'CLEAR' in status:
+            self.pedestrian_crossed = True
 
     def execute(self, userdata):
         rospy.loginfo('Executing state ' + self.__class__.__name__)
         # Wait for the traffic signal state detector
         # to tell us the light is green
-        rospy.logwarn("Waiting for /traffic_light_status to give GREEN")
-        while not rospy.is_shutdown() and not self.got_green:
+        rospy.logwarn("Waiting for /pedestrian_detection to give CLEAR")
+        while not rospy.is_shutdown() and not self.pedestrian_crossed:
             rospy.sleep(0.1)
-        return 'got_green'
+        return 'pedestrian_crossed'
 
 
 class MoveCurve(smach.State):
@@ -59,7 +59,7 @@ class MoveCurve(smach.State):
         # return 'failed'
 
 
-def mission_1():
+def mission_2():
 
     # Create a SMACH state machine
     sm = smach.StateMachine(outcomes=['succeeded', 'failed'])
@@ -67,14 +67,14 @@ def mission_1():
     # Open the container
     with sm:
         # Add states to the container
-        smach.StateMachine.add('Move_until_traffic_light',
-                               MoveUntilTrafficLight(),
+        smach.StateMachine.add('Move_until_zebra_crossing',
+                               MoveUntilZebraCrossing(),
                                transitions={
-                                   'succeeded': 'Wait_for_traffic_light_green_status',
+                                   'succeeded': 'Wait_for_pedestrian_to_cross',
                                    'failed': 'failed'})
-        smach.StateMachine.add('Wait_for_traffic_light_green_status',
-                               WaitForTrafficLightGreenStatus(),
-                               transitions={'got_green': 'Move_curve'})
+        smach.StateMachine.add('Wait_for_pedestrian_to_cross',
+                               WaitForPedestrianToCross(),
+                               transitions={'pedestrian_crossed': 'Move_curve'})
         smach.StateMachine.add('Move_curve',
                                MoveCurve(),
                                transitions={'succeeded': 'succeeded',
@@ -85,5 +85,5 @@ def mission_1():
 
 
 if __name__ == '__main__':
-    rospy.init_node("mission_1_sm")
-    mission_1()
+    rospy.init_node("mission_2_sm")
+    mission_2()
