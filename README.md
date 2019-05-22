@@ -9,10 +9,10 @@ This repository contains the code from the team "2easy" composed by:
 
 # Projects
 
-* `competition_sm`: Contains the competition state machine. We divided the state machine in missions, every mission is a state machine. A general state machine executes all the isolated state machines.
-* `traffic_light_detector`:
-* `stop_signal_detector`:
-* `pedestrian_detector`:
+* `competition_sm`: Contains the competition state machine. We divided the state machine in missions, every mission is a state machine. A general state machine executes all the isolated state machines. It uses SMACH states machines, follow [the tutorials here](http://wiki.ros.org/smach/Tutorials).
+* `traffic_light_detector`: Contains a detector of the status of a traffic light.
+* `stop_signal_detector`: Contains a detector of if there is a stop signal.
+* `pedestrian_detector`: Contains a detector if there is a pedestrian in front.
 
 # Setup
 
