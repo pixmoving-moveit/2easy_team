@@ -14,6 +14,23 @@ This repository contains the code from the team "2easy" composed by:
 * `stop_signal_detector`:
 * `pedestrian_detector`:
 
+# Setup
+
+Create a ROS workspace and clone this repo:
+```bash
+mkdir -p moving_2019_ws/src
+cd moving_2019_ws/src
+git clone https://github.com/pixmoving-moveit/2easy_team
+cd ..
+catkin build
+# or catkin_make, to use catkin build (recommended)
+# do: sudo apt-get install python-catkin-tools
+
+# DO IT ON EVERY SHELL YOU WANT TO USE
+source devel/setup.bash
+```
+
+
 
 ## Run a mission
 
