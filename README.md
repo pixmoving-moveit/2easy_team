@@ -3,7 +3,7 @@
 This repository contains the code from the team "2easy" composed by:
 
 * Sammy Pfeiffer (Sammy.Pfeiffer at student.uts.edu.au)
-* Eduardo
+* Eduardo Ferrera (eferrera at catec.aero)
 * ...
 
 
@@ -11,8 +11,8 @@ This repository contains the code from the team "2easy" composed by:
 
 * `competition_sm`: Contains the competition state machine. We divided the state machine in missions, every mission is a state machine. A general state machine executes all the isolated state machines. It uses SMACH states machines, follow [the tutorials here](http://wiki.ros.org/smach/Tutorials).
 * `traffic_light_detector`: Contains a detector of the status of a traffic light.
-* `stop_signal_detector`: Contains a detector of if there is a stop signal.
-* `pedestrian_detector`: Contains a detector if there is a pedestrian in front.
+* `stop_detector`: Contains a detector of if there is a traffic stop signal.
+* `pedestrian_detector`: Contains a detector if there is a pedestrian in front of the car.
 
 # Setup
 
@@ -41,6 +41,11 @@ rosrun competition_sm mission_1.py
 For testing, you can run:
 ```bash
 rostopic pub /traffic_light_status std_msgs/String "data: 'GREEN'"
+```
+
+For testing, you can also try:
+```bash
+roslaunch competition_sm launch_mission_1.launch
 ```
 
 To make the State Machine advance. The expected output:
