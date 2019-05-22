@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>competition_sm</name>
+  <version>0.0.0</version>
+  <description>The competition_sm package contains the competition state machine. We divided the state machine in missions, every mission is a state machine. A general state machine executes all the isolated state machines.</description>
+
+  <maintainer email="Sammy.Pfeiffer@student.uts.edu.au">Sammy Pfeiffer</maintainer>
+  <author email="eferrera@catec.aero">Eduardo Ferrera</author>
+
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>rospy</build_depend>
+  <build_export_depend>rospy</build_export_depend>
+  <exec_depend>rospy</exec_depend>
+
+
+  <!-- The export tag contains other, unspecified, tags -->
+  <export>
+    <!-- Other tools can request additional information be placed here -->
+
+  </export>
+</package>
