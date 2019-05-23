@@ -5,7 +5,8 @@
 
 # Python
 import numpy as np
-import keyboard #https://pypi.org/project/keyboard/
+import keyboard
+#https://pypi.org/project/keyboard/
 
 # ROS
 import rospy
@@ -32,6 +33,14 @@ class WaypointsRecorder(object):
         #rospy.loginfo("Subscribing to positioning system at: " +
         #              self.pointcloud_sub.resolved_name)
 
+        new_name =raw_input('Introduce a name for the file:')
+        new_name += '.txt'
+        self.pf = open(new_name,"w") 
+
+    def __del__(self):
+        # Destroy the system
+        self.pf.close()
+
     def position_cb(self, position):
         self.last_position = position
 
@@ -41,11 +50,16 @@ class WaypointsRecorder(object):
         # Waiting to have a first valid position
         #while not rospy.is_shutdown() and self.last_position is None:
         #    rate.sleep()
-        rospy.loginfo("Waypoints recorder ready. Press space to save a new waypoint")
-
+        rospy.loginfo("Waypoints recorder ready.")
+        
         while not rospy.is_shutdown():
+            new_point =raw_input('Introduce a name and press enter to save a point (q to quit):')
+            rate.sleep()
+            if (new_point == "q"):
+                return
+
+            rospy.loginfo("Saving the point as '" + new_point + "'")
             
-                rate.sleep()
 
 
 if __name__ == '__main__':
