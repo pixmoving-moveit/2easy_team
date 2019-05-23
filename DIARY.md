@@ -33,4 +33,5 @@ From the point of view of the team "2easy". Mainly from the perspective of Sammy
 * Edu work on using darknet with YOLO to detect with pre-trained networks traffic lights. Traffic light was very far, so only 1/4 of the pixels were useful. By using cropped image we improved the detections. YOLO is ready to work with our full system.
 * The internet/network connectivity in the venue was very bad today. Hours were lost on waiting for things to download.
 * We suffered a bug with the ETH-to-CAN board where it apparently overheated and stopped working correctly. The car didn't enter in autonomous mode. Autonomous mode is normally set by turning on the car, setting it in Neutral gear, pressing the green button of the wireless controller, then the big red button just next to the gear stick and then switching to D gear. The car should not move awaiting commands to move. This stopped happening. We are not sure if that was the case for sure, but it is very likely.
+* The other subteams (not Edu & Sam) didn't have Ubuntu neither ROS installed in their computers so they needed to install it in order to work with the rosbags recorded (and in general, to work).
 
