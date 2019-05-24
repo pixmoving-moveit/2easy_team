@@ -62,41 +62,18 @@ class ShellCmd:
 # Demonstration of usage
 if __name__ == '__main__':
     import time
+    import sys
+    import rospy
+    sys.argv = rospy.myargv(sys.argv)
+    waypoints_csv = sys.argv[1]
+    print("Will follow: " + str(waypoints_csv))
     precommand = "source ~/Autoware/ros/install/local_setup.bash; "
     commands_list = [
-        # "roslaunch runtime_manager setup_tf.launch x:=1.05 y:=0.0 z:=1.7 yaw:=0.0 pitch:=0.0 roll:=0.0 frame_id:=/base_link child_frame_id:=/velodyne period_in_ms:=10
-        "rosrun tf static_transform_publisher 1.05 0.0 1.7 0.0 0.0 0.0 base_link velodyne 50",
-        "roslaunch vehicle_description vehicle_model.launch",
-        "rosrun map_file points_map_loader noupdate $HOME/moving_2019_ws/src/2easy_team/pcd_maps/day2_map.pcd",
-        "roslaunch $HOME/Autoware/ros/src/.config/tf/tf_local.launch",
-        "roslaunch runtime_manager velodyne_vlp16.launch calibration:=",
-        "roslaunch points_downsampler points_downsample.launch node_name:=voxel_grid_filter points_topic:=/points_raw",
-        """rosparam set localizer velodyne;
-rosparam set tf_x 1.05;
-rosparam set tf_y 0.0;
-rosparam set tf_z 1.7;
-rosparam set tf_yaw 0.0;
-rosparam set tf_pitch 0.0;
-rosparam set tf_roll 0.0;
-sleep 5;
-roslaunch lidar_localizer ndt_matching.launch method_type:=0 use_odom:=False use_imu:=False imu_upside_down:=False imu_topic:=/imu_raw get_height:=False output_log_data:=False localizer:=velodyne""",
-        # "rosrun topic_tools relay /velodyne_points /points_raw",
-        # "rosbag play /media/sam/DATA/moving2019/round2_2019-05-22-20-02-59.bag --clock --topics /velodyne_points",
-        """sleep 10; rostopic pub /initialpose geometry_msgs/PoseWithCovarianceStamped \"header:
-  seq: 0
-  stamp:
-    secs: 0
-    nsecs: 0
-  frame_id: 'map'
-pose:
-  pose:
-    position: {x: 0.0, y: 0.0, z: 0.0}
-    orientation: {x: 0.0, y: 0.0, z: 0.0, w: 1.0}
-  covariance: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-    0.0, 0.0, 0.0, 0.0, 0.0, 0.0]\" --once"""
-    ]
+        "roslaunch waypoint_maker waypoint_loader.launch load_csv:=True multi_lane_csv:=/home/pix/autoware_2019/src/2easy_team/waypoints_data/missions/" + waypoints_csv +
+        " replanning_mode:=False realtime_tuning_mode:=False resample_mode:=True resample_interval:=1 replan_curve_mode:=False overwrite_vmax_mode:=False replan_endpoint_mode:=True velocity_max:=20 radius_thresh:=20 radius_min:=6 velocity_min:=4 accel_limit:=0.5 decel_limit:=0.3 velocity_offset:=4 braking_distance:=5 end_point_offset:=1",
+        "sleep 3; rosrun lattice_planner path_select"
 
+    ]
 
     executed_commands = []
     for cmd in commands_list:
