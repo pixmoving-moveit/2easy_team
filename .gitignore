@@ -2,3 +2,4 @@
 *.bag
 *.weights
 *.weights*
+*.pcd
