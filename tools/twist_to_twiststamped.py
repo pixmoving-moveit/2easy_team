@@ -12,7 +12,6 @@ class Twist2TwistStamped(object):
     def _cb(self, msg):
         ts = TwistStamped()
         ts.twist = msg
-        # ts.twist.linear.x *= -1.0
         ts.header.stamp = rospy.Time.now()
         self.pub.publish(ts)
     
