@@ -7,15 +7,20 @@
 
         <arg name="bags_path" default="$(find traffic_light_detector)/bags"/> 
         <!-- Executes all bags-->
-	<!--node name="rosbag0" pkg="rosbag" type="play" args="-d 1 -r 1.0 $(arg bags_path)/rosbags_day2/traffic_light_evening_2019-05-23-19-10-49.bag" output="screen">
+
+	
+	<!-- This one is good to test the color of the light-->
+		<!--node name="rosbag3" pkg="rosbag" type="play" args="-d 1 -q -r 1.0 $(arg bags_path)/rosbags_day2/traffic_light_2019-05-23-10-20-35.bag" output="screen">
+	</node-->
+	<!--node name="rosbag2" pkg="rosbag" type="play" args="-d 1 -q -r 1.0 $(arg bags_path)/rosbags_day2/traffic_light_2019-05-23-10-19-34.bag" output="screen">
 	</node-->
 
-	<!-- This one is good to test the color of the light-->
-        <node name="rosbag1" pkg="rosbag" type="play" args="-d 1 -l -q -r 0.5 $(arg bags_path)/rosbags_day2/traffic_light_2019-05-23-10-18-31.bag" output="screen">
-	</node>
-	<!--node name="rosbag2" pkg="rosbag" type="play" args="-d 1 -r 2.0 $(arg bags_path)/rosbags_day2/traffic_light_2019-05-23-10-19-34.bag" output="screen">
-	</node>
-	<node name="rosbag3" pkg="rosbag" type="play" args="-d 1 -r 1.0 $(arg bags_path)/rosbags_day2/traffic_light_2019-05-23-10-20-35.bag" output="screen">
+	
+	<!-- With those rosbags works -->
+	<!--node name="rosbag1" pkg="rosbag" type="play" args="-d 1 -l -q -r 0.7 $(arg bags_path)/rosbags_day2/traffic_light_2019-05-23-10-18-31.bag" output="screen">
 	</node-->
+	<node name="rosbag0" pkg="rosbag" type="play" args="-d 1 -q -r 1.0 $(arg bags_path)/rosbags_day2/traffic_light_evening_2019-05-23-19-10-49.bag" output="screen">
+	</node>
+
   
 </launch>

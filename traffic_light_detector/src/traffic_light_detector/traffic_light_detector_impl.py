@@ -21,8 +21,6 @@ low_red   = np.array([161, 155, 84])
 high_red  = np.array([179, 255, 255])
 low_green = np.array([30,40,40]) 
 high_green= np.array([95,240,240]) 
-#low_green = np.array([25, 52, 72])         # Works poorly
-#high_green = np.array([102, 255, 255])     # Works poorly
 
 class TrafficLightDetector(object):
     """
@@ -34,6 +32,8 @@ class TrafficLightDetector(object):
     def __init__(self):
         # Subscribing to the image
         self.reduction_factor = 0.5
+        self.necessary_greens2understand_green = 6
+        self.necessary_reds2understand_red = 0
 
         if (self.reduction_factor >= 1 or self.reduction_factor <= 0):
             rospy.logwarn("Ignoring the reduction factor")
@@ -59,7 +59,12 @@ class TrafficLightDetector(object):
         self.img_red_pub   = rospy.Publisher("camera0/traffic_light_red"  , Image, queue_size=1)
 
         # Publishing the result of the node
-        self.pub = rospy.Publisher("/traffic_light_status", String, queue_size=1)
+        self.status = "GREEN"
+        self.times_seen_green = 0
+        self.last_status = "RED"
+        self.times_seen_red   = 0
+        self.timer_out_red = 0.0
+        self.pub = rospy.Publisher("/traffic_light_status", String, queue_size=1, latch=True)
         rospy.loginfo("Publishing traffic light detections to: " + self.pub.resolved_name)
 
 
@@ -89,16 +94,17 @@ class TrafficLightDetector(object):
                                                  traf_found.xmin:traf_found.xmax]
             (cv_green_masked, p_green) = self.masked_by_color(cv_img_traf_light, low_green, high_green)
             (cv_red_masked,   p_red)   = self.masked_by_color(cv_img_traf_light, low_red,   high_red)
+
+            (h,w) = cv_img_traf_light.shape[:2]
+            if (self.status == "GREEN"):
+                cv_img_traf_light = cv2.rectangle(cv_img_traf_light, (0,0), (w,h), (0,255,0),5)
+            else:
+                cv_img_traf_light = cv2.rectangle(cv_img_traf_light, (0,0), (w,h), (0,0,255),5)
             self.img_seg_pub.publish(  self.bridge.cv2_to_imgmsg(cv_img_traf_light, encoding="bgr8"))
             self.img_red_pub.publish(  self.bridge.cv2_to_imgmsg(cv_red_masked,     encoding="bgr8"))
             self.img_green_pub.publish(self.bridge.cv2_to_imgmsg(cv_green_masked,   encoding="bgr8"))
-
-            # Computes probabilities
-            p_tot = float(p_green + p_red)
-            p_green = float(p_green)/p_tot
-            p_red   = float(p_red)  /p_tot
-
-            rospy.loginfo("p_green: " + str(p_green) + " p_red: " + str(p_red))
+            rospy.loginfo("Sending Images")
+            self.detect_traffic_light_status(p_green, p_red)
 
     def masked_by_color(self,img, low_mask, high_mask):
         # Note: It does not return a probability, but a number of points in the color
@@ -119,33 +125,68 @@ class TrafficLightDetector(object):
         p_of_color = sum(sum(mask/255))
         return (res,p_of_color)
 
-    def detect_traffic_light(self, image):
+    def detect_traffic_light_status(self, p_green, p_red):
         """
-        Code that detects the traffic light status
-        based on ...
-        returns 'RED', 'GREEN', 'UNKNOWN'
+        Detects the probability of a traffic_light in red or in green
+        depending on the pixel masks
         """
-        # Do magic code here
+        # Computes probabilities
+        p_tot   = float(p_green + p_red)
+        if (p_tot == 0.0):
+            p_tot = 1.0
+        p_green = float(p_green)/p_tot
+        p_red   = float(p_red)  /p_tot
+        
+        if (p_red > p_green):
+            self.times_seen_red   += 1 
+            seen = "RED  "
+        else:
+            self.times_seen_green += 1
+            seen = "GREEN"
 
-        # if detection is true
-        return 'GREEN'
-        # else:
-        # return 'RED'
+        if (self.status == "GREEN"):
+            msg = "\n"           +\
+                  " /|\ \n"      +\
+                  "  |   GO!\n"  +\
+                  "  |  \n"      +\
+                  "  |  \n"
+        else:
+            msg = "\n STOP! \n "
 
-    def pub_traffic_light_status(self, status):
+        msg += "Detected: " + seen + " | " +\
+               "p_green: " + str(round(100.0*p_green, 1)) + "%" +\
+               " p_red: "  + str(round(100.0*p_red,   1)) + "%" + "\n" +\
+               "Status:   " + self.status + " | " +\
+               "green_n:" + str(self.times_seen_green) + " " +\
+               "red_n:  " + str(self.times_seen_red)
+
+        rospy.loginfo(msg)        
+        return
+
+    def pub_traffic_light_status(self):
         """
         Publishes the traffic light status:
-        'RED', 'GREEN', 'UNKNOWN'
+        'RED', 'GREEN'
         """
-        #rospy.loginfo('Publishing: ' + status)
-        self.pub.publish(status)
+        # Changing status if necessary
+        if (self.status == "GREEN" and 
+            self.times_seen_red > self.necessary_reds2understand_red):
+            self.times_seen_green = 0
+            self.status = "RED  "
+        if (self.status == "RED  " and 
+            self.times_seen_green > self.necessary_greens2understand_green):
+            self.times_seen_red = 0
+            self.status = "GREEN"
+
+        if (self.status != self.last_status):
+            rospy.loginfo('Publishing: ' + self.status)
+            self.pub.publish(self.status)
+            self.last_status = self.status
 
     def run(self):
         rate = rospy.Rate(10)  # Detect at 10hz
         while not rospy.is_shutdown():
-            if self.cv_last_img is not None:
-                result = self.detect_traffic_light(self.cv_last_img)
-                self.pub_traffic_light_status(result)
+            self.pub_traffic_light_status()
             rate.sleep()
 
 
