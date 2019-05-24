@@ -1,10 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This system tryes to detect if there is a pedestrian (or something infront of the car)-->
+
 <launch>
   <node pkg="nodelet" type="nodelet" name="pcl_manager" args="manager" output="screen" />
 
   <!-- Run a VoxelGrid filter to clean NaNs and downsample the data -->
   <node pkg="nodelet" type="nodelet" name="voxel_grid" args="load pcl/VoxelGrid pcl_manager" output="screen">
-    <remap from="~input" to="/points_raw" />
-    <remap from="~output" to="/points_downsampled" />
+    <remap from="~input" to="/velodyne_points" />
+    <remap from="~output" to="/velodyne_downsampled" />
     <!-- Output will be a pointcloud
     that only contains points representing a point for every 0.1m
     where every point is in between z (height) 0.2 and 1.7 to
