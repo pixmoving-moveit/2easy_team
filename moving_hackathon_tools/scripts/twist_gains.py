@@ -20,7 +20,6 @@ class TwistStampedGains(object):
     def __init__(self):
         self.pub = rospy.Publisher('/twist_raw',
                                    TwistStamped, queue_size=1)
-        rospy.loginfo("")
         self.ddr = DDynamicReconfigure('twist_gains')
         self.ddr.add_variable('linear_x_gain',
                               "gain for twist.linear.x",
@@ -42,6 +41,8 @@ class TwistStampedGains(object):
     def dyn_rec_callback(self, config, level):
         self.linear_x_gain = config['linear_x_gain']
         self.angular_z_gain = config['angular_z_gain']
+        rospy.loginfo(
+            "TwistStampedGains got a reconfigure callback: " + str(config))
         return config
 
     def _cb(self, msg):
