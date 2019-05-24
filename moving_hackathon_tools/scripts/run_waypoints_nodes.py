@@ -76,7 +76,7 @@ if __name__ == '__main__':
   frame_id: ''
 param_flag: 0
 velocity: 5.0
-lookahead_distance: 4.0
+lookahead_distance: 1.0
 lookahead_ratio: 2.0
 minimum_lookahead_distance: 6.0
 displacement_threshold: 0.0
