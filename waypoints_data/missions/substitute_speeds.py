@@ -3,14 +3,26 @@
 import csv
 import sys
 
+if len(sys.argv) != 3:
+    print("Usage:")
+    print(sys.argv[0] + " waypoints_file desired_speed")
+    print(sys.argv[0] + " waypoints.csv 7.0")
+    print("")
+    print("Note: First and last waypoint will have 0.0 speed")
+    exit(0)
+
 filename = sys.argv[1]
-wanted_speed = sys.argv[2]
+wanted_speed = float(sys.argv[2])
+
+print("Reading from: " + str(filename))
+print("Setting speeds to: " + str(wanted_speed))
+print("Writing to: " + str(filename + ".new_speed.csv"))
 
 with open(filename, 'r') as fin:
     for i, l in enumerate(fin):
         pass
     line_numbers = i
-print("file with " + str(i) + " lines")
+print("File with " + str(i) + " lines")
 
 with open(filename, 'r') as fin:
     r = csv.reader(fin)
@@ -28,3 +40,5 @@ with open(filename, 'r') as fin:
             else:
                 line[4] = wanted_speed
             w.writerow(line)
+
+print("Done.")
