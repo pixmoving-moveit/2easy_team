@@ -1,2 +1,5 @@
 *.pyc
 *.bag
+*.weights
+*.weights*
+*.pcd
