@@ -17,10 +17,12 @@ import cv2
 from cv_bridge import CvBridge, CvBridgeError
 
 # Color boundaries in HSV
-low_red = np.array([161, 155, 84])
-high_red = np.array([179, 255, 255])
-low_green = np.array([25, 52, 72])
-high_green = np.array([102, 255, 255])
+low_red   = np.array([161, 155, 84])
+high_red  = np.array([179, 255, 255])
+low_green = np.array([30,40,40]) 
+high_green= np.array([95,240,240]) 
+#low_green = np.array([25, 52, 72])         # Works poorly
+#high_green = np.array([102, 255, 255])     # Works poorly
 
 class TrafficLightDetector(object):
     """
@@ -83,34 +85,39 @@ class TrafficLightDetector(object):
                     if (traf_found.probability > b_box):
                         traf_found = b_box
         if (traf_found != None):
-            print traf_found
             cv_img_traf_light = self.cv_last_img[traf_found.ymin:traf_found.ymax, 
                                                  traf_found.xmin:traf_found.xmax]
-            cv_green_masked = self.masked_by_color(cv_img_traf_light, low_green, high_green)
-            cv_red_masked   = self.masked_by_color(cv_img_traf_light, low_red, high_red)
+            (cv_green_masked, p_green) = self.masked_by_color(cv_img_traf_light, low_green, high_green)
+            (cv_red_masked,   p_red)   = self.masked_by_color(cv_img_traf_light, low_red,   high_red)
             self.img_seg_pub.publish(  self.bridge.cv2_to_imgmsg(cv_img_traf_light, encoding="bgr8"))
             self.img_red_pub.publish(  self.bridge.cv2_to_imgmsg(cv_red_masked,     encoding="bgr8"))
             self.img_green_pub.publish(self.bridge.cv2_to_imgmsg(cv_green_masked,   encoding="bgr8"))
 
+            # Computes probabilities
+            p_tot = float(p_green + p_red)
+            p_green = float(p_green)/p_tot
+            p_red   = float(p_red)  /p_tot
+
+            rospy.loginfo("p_green: " + str(p_green) + " p_red: " + str(p_red))
+
     def masked_by_color(self,img, low_mask, high_mask):
+        # Note: It does not return a probability, but a number of points in the color
         # Applies a mask trying to extract only the specified color
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
         # Threshold the HSV image to get only blue color
         mask = cv2.inRange(hsv, low_mask, high_mask)
+        mask = cv2.medianBlur(mask, 5)                  # The magic of the code to deleate noise :P
         res = cv2.bitwise_and(img, img, mask=mask)
         res = cv2.medianBlur(res, 5)
-        return res
-
-
-    """
-    # Green color
-    
-    green_mask = cv2.inRange(hsv_frame, low_green, high_green)
-    green = cv2.bitwise_and(frame, frame, mask=green_mask)
-    """
-
         
+        # Debuging to see the mask
+        #for row in mask:
+        #    for val in row:
+        #        print '{:4}'.format(val),
+        #    print
+        p_of_color = sum(sum(mask/255))
+        return (res,p_of_color)
 
     def detect_traffic_light(self, image):
         """
