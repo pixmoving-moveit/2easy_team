@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<launch>
+    <include file="$(find traffic_light_detector)/launch/darknet_ros.launch">
+		<arg name="yolo_weights_path"          value="$(find darknet_ros)/yolo_network_config/weights"/>
+		<arg name="yolo_config_path"           value="$(find darknet_ros)/yolo_network_config/cfg"/>
+	</include>
+
+    <node pkg="traffic_light_detector" type="detector.py" name="traffic_light_detector" output="screen"/>
+</launch>
