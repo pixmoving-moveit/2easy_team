@@ -8,8 +8,12 @@
         <arg name="bags_path" default="$(find pedestrian_detector)/bags"/> 
         <!-- Executes all bags-->
 
-	<node name="rosbag0" pkg="rosbag" type="play" args="-d 1 -q -r 0.3 $(arg bags_path)/pedestrian_2019-05-24-19-40-53.bag" output="screen">
+	<!-- <node name="rosbag0" pkg="rosbag" type="play" args="-d 1 -q -r 0.3 $(arg bags_path)/pedestrian_2019-05-24-19-40-53.bag" output="screen">
+	</node> -->
+
+        <node name="rosbag0" pkg="rosbag" type="play" args="-d 1 -q -r 0.3 $(arg bags_path)/pedestrian_2019-05-25-13-07-34.bag" output="screen">
 	</node>
+        
 
   
 </launch>

@@ -18,9 +18,9 @@
     You can tune the values of this node using dynamic reconfigure with:
     rosrun rqt_reconfigure rqt_reconfigure
     -->
-
-  <!-- Run a VoxelGrid filter to clean NaNs and downsample the data in z -->
-  <!-- <node pkg="nodelet" type="nodelet" name="voxel_grid_z" args="load pcl/VoxelGrid pcl_manager" output="screen">
+  <!-- Run a VoxelGrid filter to clean NaNs and downsample the data -->
+  <!-- Downsampling in z -->
+  <node pkg="nodelet" type="nodelet" name="voxel_grid_z" args="load pcl/VoxelGrid pcl_manager" output="screen">
     <remap from="~input" to="/points_raw"/>
     <remap from="~output" to="/velodyne_downsampled_z" />
 
@@ -33,12 +33,12 @@
       input_frame: base_link
       output_frame: base_link
     </rosparam>
-  </node> -->
+  </node>
 
-<!-- Downsampling in x -->
-  <!--node pkg="nodelet" type="nodelet" name="voxel_grid_x" args="load pcl/VoxelGrid pcl_manager" output="screen">
-    <remap from="~input" to="/points_raw"/>
-    <remap from="~output" to="/velodyne_downsampled_zx" />
+  <!-- Downsampling in x -->
+  <node pkg="nodelet" type="nodelet" name="voxel_grid_x" args="load pcl/VoxelGrid pcl_manager" output="screen">
+    <remap from="~input" to="/velodyne_downsampled_z"/>
+    <remap from="~output" to="/velodyne_downsampled_xz" />
     <rosparam>
       filter_field_name: x
       filter_limit_min: -50.0
@@ -48,12 +48,12 @@
       input_frame: base_link
       output_frame: base_link
     </rosparam>
-  </node> -->
+  </node> 
 
-    <!-- Downsampling in x -->
-  <node pkg="nodelet" type="nodelet" name="voxel_grid_x" args="load pcl/VoxelGrid pcl_manager" output="screen">
-    <remap from="~input" to="/points_raw"/>
-    <remap from="~output" to="/velodyne_downsampled_zx" />
+    <!-- Downsampling in y -->
+  <node pkg="nodelet" type="nodelet" name="voxel_grid_y" args="load pcl/VoxelGrid pcl_manager" output="screen">
+    <remap from="~input" to="/velodyne_downsampled_xz"/>
+    <remap from="~output" to="/velodyne_downsampled_xyz" />
     <rosparam>
       filter_field_name: y
       filter_limit_min: -15.0
@@ -64,4 +64,6 @@
       output_frame: base_link
     </rosparam>
   </node>
+  
+  <node pkg="pedestrian_detector" type="detector.py" name="pedestrian_detector" output="screen"/>
 </launch>
