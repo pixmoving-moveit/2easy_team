@@ -29,6 +29,8 @@ class PedestrianDetector(object):
 
     def __init__(self):
 
+        self.n_measurements_consider_valid = 4
+        
         # Publishes the area where the pedestrian pass is
         self.pub_pedestrian_area = rospy.Publisher("/pedestrian_area_reference", PolygonStamped, queue_size=1, latch=True)
         self.pedestrian_center = [42.3,78.9, -0.48]
@@ -172,7 +174,7 @@ class PedestrianDetector(object):
                 if (self.pedestrian_recog_area_wide_x[0] < px and 
                    px < self.pedestrian_recog_area_wide_x[1]):   
                     person_found.append([p[0], p[1], p[2]])
-                    if len(person_found) > 5:
+                    if len(person_found) > self.n_measurements_consider_valid:
                         self.publish_person_found('CROSSING')
                         self.publish_person_found_area(person_found)
                         return
