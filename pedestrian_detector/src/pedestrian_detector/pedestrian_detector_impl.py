@@ -55,18 +55,18 @@ class PedestrianDetector(object):
         self.pub_pedestrian_area_attention = rospy.Publisher("/pedestrian_area_attention",                                      PolygonStamped, queue_size=1, latch=True)
         self.pedestrian_recog_area_c = [self.pedestrian_center[0] + self.pedestrian_wide[0]/2.0,
                                         self.pedestrian_center[1] + self.pedestrian_wide[1]/2.0]
-        self.pedestrian_recog_area_wide_x = [-3.2, 2.5]
+        self.pedestrian_recog_area_wide_x = [-2.4, 3.3]
         self.pedestrian_recog_area_wide_y = self.pedestrian_wide[1]/2 + 0.05
         self.publish_pedestrian_area_attention()
         # Uses as a reference the direction on which the car comes
-        self.pedestrian_area.add_variable('x_pedest_right','x_pedestrian_right', 
+        self.pedestrian_area.add_variable('x_pedest_neg','x_pedestrian_neg', 
                                     self.pedestrian_recog_area_wide_x[0], 
-                                    min= -5.0, 
+                                    min=  -5.0, 
                                     max = 0.0)
-        self.pedestrian_area.add_variable('x_pedest_left','x_pedestrian_left', 
+        self.pedestrian_area.add_variable('x_pedest_pos','x_pedestrian_pos', 
                                     self.pedestrian_recog_area_wide_x[1], 
-                                    min= 0.0, 
-                                    max = +5.0)
+                                    min=  0.0, 
+                                    max = 5.0)
         self.pedestrian_area.start(self.pedestrian_changes_cb)
 
         self.pointcloud_sub = rospy.Subscriber('/velodyne_downsampled_xyz',
@@ -115,27 +115,27 @@ class PedestrianDetector(object):
 
         p1 = Point()
         # Farer away point to th2 factory
-        p1.x = self.pedestrian_recog_area_c[0] - self.pedestrian_recog_area_wide_x[0]
+        p1.x = self.pedestrian_recog_area_c[0] + self.pedestrian_recog_area_wide_x[0]
         p1.y = self.pedestrian_recog_area_c[1] + self.pedestrian_recog_area_wide_y
         p1.z = self.pedestrian_center[2] 
         msg.polygon.points.append(p1)
 
         p2 = Point()
-        p2.x = self.pedestrian_recog_area_c[0] - self.pedestrian_recog_area_wide_x[0]
+        p2.x = self.pedestrian_recog_area_c[0] + self.pedestrian_recog_area_wide_x[0]
         p2.y = self.pedestrian_recog_area_c[1] - self.pedestrian_recog_area_wide_y
         p2.z = self.pedestrian_center[2]
         msg.polygon.points.append(p2)
 
         p3 = Point()
         # Closest point to the factory
-        p3.x = self.pedestrian_recog_area_c[0] - self.pedestrian_recog_area_wide_x[1]
+        p3.x = self.pedestrian_recog_area_c[0] + self.pedestrian_recog_area_wide_x[1]
         p3.y = self.pedestrian_recog_area_c[1] - self.pedestrian_recog_area_wide_y
         p3.z = self.pedestrian_center[2]
         msg.polygon.points.append(p3)
 
         p4 = Point()
         # The point that is at the left of the car
-        p4.x = self.pedestrian_recog_area_c[0] - self.pedestrian_recog_area_wide_x[1]
+        p4.x = self.pedestrian_recog_area_c[0] + self.pedestrian_recog_area_wide_x[1]
         p4.y = self.pedestrian_recog_area_c[1] + self.pedestrian_recog_area_wide_y
         p4.z = self.pedestrian_center[2]
         msg.polygon.points.append(p4)
@@ -148,8 +148,8 @@ class PedestrianDetector(object):
         self.pedestrian_center[1] = config['y_pose']
         self.pedestrian_wide[0] =   config['x_size']
         self.pedestrian_wide[1] =   config['y_size']
-        self.pedestrian_recog_area_wide_x[0] = config['x_pedest_right']
-        self.pedestrian_recog_area_wide_x[1] = config['x_pedest_left']
+        self.pedestrian_recog_area_wide_x[0] = config['x_pedest_neg']
+        self.pedestrian_recog_area_wide_x[1] = config['x_pedest_pos']
         self.publish_pedestrian_area()
         self.publish_pedestrian_area_attention()
         return config
@@ -168,14 +168,14 @@ class PedestrianDetector(object):
             px = p[0] - self.pedestrian_recog_area_c[0]
             py = p[1] - self.pedestrian_recog_area_c[1]
             if (abs(py) < self.pedestrian_recog_area_wide_y):
-                #print ((px,py))
-                #self.pedestrian_recog_area_wide_x = [-3.2, 2.5]
-                if (px > -self.pedestrian_recog_area_wide_x[0] and 
-                    px < -self.pedestrian_recog_area_wide_x[1]):
-                    person_found.append([p[0], p[1]])
-                    self.publish_person_found('CROSSING')
-                    self.publish_person_found_area(person_found)
-                    return 
+                # Taking points at the right of the pedestrian
+                if (self.pedestrian_recog_area_wide_x[0] < px and 
+                   px < self.pedestrian_recog_area_wide_x[1]):   
+                    person_found.append([p[0], p[1], p[2]])
+                    if len(person_found) > 5:
+                        self.publish_person_found('CROSSING')
+                        self.publish_person_found_area(person_found)
+                        return
         self.publish_person_found('CLEAR')
         return 
     
@@ -188,15 +188,22 @@ class PedestrianDetector(object):
         msg = PolygonStamped()
         msg.header.frame_id = "/map"
 
+        px = 0
+        py = 0
+        pz = 0
         for person in position:
-            px = person[0]
-            py = person[1]
+            px += person[0]
+            py += person[1]
+            pz += person[2]
+        px /= len(position)
+        py /= len(position)
+        pz /= len(position)
         r = 0.4
         marker = Marker(
                 type=Marker.CUBE,
                 id=0,
-                lifetime=rospy.Duration(1.5),
-                pose=Pose(Point(px,py, 0), Quaternion(0, 0, 0, 1)),
+                lifetime=rospy.Duration(0.3),
+                pose=Pose(Point(px,py,pz), Quaternion(0, 0, 0, 1)),
                 scale=Vector3(r,r,2.0),
                 header=Header(frame_id='map'),
                 color=ColorRGBA(0.0, 1.0, 0.0, 0.8),
