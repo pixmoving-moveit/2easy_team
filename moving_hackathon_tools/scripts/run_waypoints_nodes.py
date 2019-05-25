@@ -82,7 +82,7 @@ minimum_lookahead_distance: 6.0
 displacement_threshold: 0.0
 relative_angle_threshold: 0.0" --once""",
 
-        "roslaunch lane_planner lane_select.launch",
+        # "roslaunch lane_planner lane_select.launch",
         "roslaunch lane_planner lane_navi.launch velocity:=40 output_file:=/tmp/lane_waypoint.csv",
         "rosrun lane_planner lane_rule",
         "rosrun lane_planner lane_stop",

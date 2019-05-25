@@ -83,7 +83,7 @@ roslaunch lidar_localizer ndt_matching.launch method_type:=0 use_odom:=False use
         "rosrun topic_tools relay /velodyne_points /points_raw",
         # For the rosbag with --clock
         "rosparam set /use_sim_time true",
-        "rosbag play /media/sam/DATA/moving2019/round2_2019-05-22-20-02-59.bag --clock --topics /velodyne_points",
+        "rosbag play /media/sam/DATA/moving2019/round2_2019-05-22-20-02-59.bag -r 0.5 --clock --topics /velodyne_points",
         """sleep 10; rostopic pub /initialpose geometry_msgs/PoseWithCovarianceStamped \"header:
   seq: 0
   stamp:

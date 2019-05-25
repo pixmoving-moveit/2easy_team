@@ -2,22 +2,25 @@
 
 import rospy
 import smach
+import smach_ros
 from std_msgs.msg import String
+from follow_waypoints import FollowWaypointsFile
 
 
-class MoveUntilZebraCrossing(smach.State):
-    def __init__(self):
-        smach.State.__init__(self, outcomes=['succeeded', 'failed'])
+# class MoveUntilZebraCrossing(smach.State):
+#     def __init__(self):
+#         smach.State.__init__(self, outcomes=['succeeded', 'failed'])
 
-    def execute(self, userdata):
-        rospy.loginfo('Executing state ' + self.__class__.__name__)
-        # Send a goal to our "Move using waypoints" server and wait until
-        # we reach the goal
+#     def execute(self, userdata):
+#         rospy.loginfo('Executing state ' + self.__class__.__name__)
+#         # Send a goal to our "Move using waypoints" server and wait until
+#         # we reach the goal
+#         fwf = FollowWaypointsFile('mission_2_drive_curve.csv')
+#         fwf.wait_to_reach_last_waypoint()
 
-        rospy.sleep(3)
-        return 'succeeded'
-        # if something went wrong
-        # return 'failed'
+#         return 'succeeded'
+#         # if something went wrong
+#         # return 'failed'
 
 
 class WaitForPedestrianToCross(smach.State):
@@ -44,7 +47,7 @@ class WaitForPedestrianToCross(smach.State):
         return 'pedestrian_crossed'
 
 
-class MoveCurve(smach.State):
+class MoveCurveChangeLaneAndStop(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['succeeded', 'failed'])
 
@@ -52,14 +55,23 @@ class MoveCurve(smach.State):
         rospy.loginfo('Executing state ' + self.__class__.__name__)
         # Send a goal to our "Move using waypoints" server and wait until
         # we reach the goal
-
-        rospy.sleep(3)
+        fwf = FollowWaypointsFile('mission_2_drive_curve.csv')
+        fwf.wait_to_reach_last_waypoint()
         return 'succeeded'
         # if something went wrong
         # return 'failed'
 
 
-def mission_2():
+def mission_2_sm():
+    sm = get_mission_2()
+
+    sis = smach_ros.IntrospectionServer('mission_2', sm, '/SM_ROOT')
+    sis.start()
+    # Execute SMACH plan
+    outcome = sm.execute()
+
+
+def get_mission_2_and_3_sm():
 
     # Create a SMACH state machine
     sm = smach.StateMachine(outcomes=['succeeded', 'failed'])
@@ -67,21 +79,19 @@ def mission_2():
     # Open the container
     with sm:
         # Add states to the container
-        smach.StateMachine.add('Move_until_zebra_crossing',
-                               MoveUntilZebraCrossing(),
-                               transitions={
-                                   'succeeded': 'Wait_for_pedestrian_to_cross',
-                                   'failed': 'failed'})
+        # smach.StateMachine.add('Move_until_zebra_crossing',
+        #                        MoveUntilZebraCrossing(),
+        #                        transitions={
+        #                            'succeeded': 'Wait_for_pedestrian_to_cross',
+        #                            'failed': 'failed'})
         smach.StateMachine.add('Wait_for_pedestrian_to_cross',
                                WaitForPedestrianToCross(),
-                               transitions={'pedestrian_crossed': 'Move_curve'})
-        smach.StateMachine.add('Move_curve',
-                               MoveCurve(),
+                               transitions={'pedestrian_crossed': 'Move_curve_change_lane_and_stop'})
+        smach.StateMachine.add('Move_curve_change_lane_and_stop',
+                               MoveCurveChangeLaneAndStop(),
                                transitions={'succeeded': 'succeeded',
                                             'failed': 'failed'})
-
-    # Execute SMACH plan
-    outcome = sm.execute()
+    return sm
 
 
 if __name__ == '__main__':

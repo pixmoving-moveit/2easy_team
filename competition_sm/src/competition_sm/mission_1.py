@@ -2,7 +2,9 @@
 
 import rospy
 import smach
+import smach_ros
 from std_msgs.msg import String
+from follow_waypoints import FollowWaypointsFile
 
 
 class MoveUntilTrafficLight(smach.State):
@@ -13,8 +15,11 @@ class MoveUntilTrafficLight(smach.State):
         rospy.loginfo('Executing state ' + self.__class__.__name__)
         # Send a goal to our "Move using waypoints" server and wait until
         # we reach the goal
+        fwf = FollowWaypointsFile('mission_1_until_stop.csv')
+        fwf.wait_to_reach_last_waypoint()
+        fwf.kill()
+        del fwf
 
-        rospy.sleep(3)
         return 'succeeded'
         # if something went wrong
         # return 'failed'
@@ -52,15 +57,17 @@ class MoveCurve(smach.State):
         rospy.loginfo('Executing state ' + self.__class__.__name__)
         # Send a goal to our "Move using waypoints" server and wait until
         # we reach the goal
+        fwf = FollowWaypointsFile('mission_1_curve_to_pedestrian.csv')
+        fwf.wait_to_reach_last_waypoint()
+        fwf.kill()
+        del fwf
 
-        rospy.sleep(3)
         return 'succeeded'
         # if something went wrong
         # return 'failed'
 
 
-def mission_1():
-
+def get_mission_1_sm():
     # Create a SMACH state machine
     sm = smach.StateMachine(outcomes=['succeeded', 'failed'])
 
@@ -79,6 +86,13 @@ def mission_1():
                                MoveCurve(),
                                transitions={'succeeded': 'succeeded',
                                             'failed': 'failed'})
+    return sm
+
+
+def mission_1():
+    sm = get_mission_1_sm()
+    sis = smach_ros.IntrospectionServer('mission_1', sm, '/SM_ROOT')
+    sis.start()
 
     # Execute SMACH plan
     outcome = sm.execute()

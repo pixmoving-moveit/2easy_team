@@ -1,0 +1,23 @@
+<launch>
+
+    <node pkg="moving_hackathon_tools"
+        name="base_car_software"
+        type="run_basic_nodes_real_car.py"
+        output="screen"/>
+
+    <node pkg="moving_hackathon_tools"
+        name="waypoints_sw"
+        type="run_waypoints_nodes.py"
+        output="screen"/>
+
+    <node pkg="moving_hackathon_tools"
+        name="twist_gains"
+        type="twist_gains.py"
+        output="screen" />
+
+    <node pkg="moving_hackathon_tools"
+        name="camera_driver"
+        type="start_camera.sh"
+        output="screen" />
+
+</launch>

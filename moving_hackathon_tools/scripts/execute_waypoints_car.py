@@ -71,7 +71,8 @@ if __name__ == '__main__':
     commands_list = [
         "roslaunch waypoint_maker waypoint_loader.launch load_csv:=True multi_lane_csv:=/home/pix/autoware_2019/src/2easy_team/waypoints_data/missions/" + waypoints_csv +
         " replanning_mode:=False realtime_tuning_mode:=False resample_mode:=True resample_interval:=1 replan_curve_mode:=False overwrite_vmax_mode:=False replan_endpoint_mode:=True velocity_max:=20 radius_thresh:=20 radius_min:=6 velocity_min:=4 accel_limit:=0.5 decel_limit:=0.3 velocity_offset:=4 braking_distance:=5 end_point_offset:=1",
-        "sleep 3; rosrun lattice_planner path_select"
+        "sleep 3; rosrun lattice_planner path_select",
+        "roslaunch lane_planner lane_select.launch"
 
     ]
 

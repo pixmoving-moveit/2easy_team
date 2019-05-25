@@ -1,0 +1,6 @@
+<launch>
+
+    <include 
+        file="$(find traffic_light_detector)/launch/traffic_light_detector.launch" />
+
+</launch>
