@@ -9,12 +9,16 @@ import numpy as np
 # ROS
 import rospy
 from std_msgs.msg import String
-from geometry_msgs.msg import Point
+from geometry_msgs.msg import Point, Quaternion, Pose, Point, Vector3
 from geometry_msgs.msg import PolygonStamped
 from ddynamic_reconfigure_python.ddynamic_reconfigure import DDynamicReconfigure
-""" from sensor_msgs.msg import PointCloud2
-from sensor_msgs.point_cloud2 import read_points """
-
+from sensor_msgs.msg import PointCloud2
+from sensor_msgs.point_cloud2 import read_points
+import tf2_ros
+import tf2_py as tf2 
+from tf2_sensor_msgs.tf2_sensor_msgs import do_transform_cloud
+from visualization_msgs.msg import Marker
+from std_msgs.msg import Header, ColorRGBA
 # Other imports
 
 
@@ -47,8 +51,33 @@ class PedestrianDetector(object):
                                     self.pedestrian_wide[1], 
                                     min= self.pedestrian_wide[1] - 1, 
                                     max = self.pedestrian_wide[1] + 1)
+
+        self.pub_pedestrian_area_attention = rospy.Publisher("/pedestrian_area_attention",                                      PolygonStamped, queue_size=1, latch=True)
+        self.pedestrian_recog_area_c = [self.pedestrian_center[0] + self.pedestrian_wide[0]/2.0,
+                                        self.pedestrian_center[1] + self.pedestrian_wide[1]/2.0]
+        self.pedestrian_recog_area_wide_x = [-3.2, 2.5]
+        self.pedestrian_recog_area_wide_y = self.pedestrian_wide[1]/2 + 0.05
+        self.publish_pedestrian_area_attention()
+        # Uses as a reference the direction on which the car comes
+        self.pedestrian_area.add_variable('x_pedest_right','x_pedestrian_right', 
+                                    self.pedestrian_recog_area_wide_x[0], 
+                                    min= -5.0, 
+                                    max = 0.0)
+        self.pedestrian_area.add_variable('x_pedest_left','x_pedestrian_left', 
+                                    self.pedestrian_recog_area_wide_x[1], 
+                                    min= 0.0, 
+                                    max = +5.0)
         self.pedestrian_area.start(self.pedestrian_changes_cb)
 
+        self.pointcloud_sub = rospy.Subscriber('/velodyne_downsampled_xyz',
+                                                PointCloud2,
+                                                self.velodyne_cb,
+                                                queue_size=1)
+        self.pub_person_found = rospy.Publisher("/pedestrian_detection",
+                                                String, queue_size=1)
+        self.pub_person_found_area = rospy.Publisher("/pedestrian_area_detection",                                      Marker, queue_size=1, latch=True)
+        self.tf_buffer = tf2_ros.Buffer()
+        self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
 
     def publish_pedestrian_area(self):
         msg = PolygonStamped()
@@ -80,63 +109,111 @@ class PedestrianDetector(object):
         self.pub_pedestrian_area.publish(msg)
         return
 
+    def publish_pedestrian_area_attention(self):
+        msg = PolygonStamped()
+        msg.header.frame_id = "/map"
+
+        p1 = Point()
+        # Farer away point to th2 factory
+        p1.x = self.pedestrian_recog_area_c[0] - self.pedestrian_recog_area_wide_x[0]
+        p1.y = self.pedestrian_recog_area_c[1] + self.pedestrian_recog_area_wide_y
+        p1.z = self.pedestrian_center[2] 
+        msg.polygon.points.append(p1)
+
+        p2 = Point()
+        p2.x = self.pedestrian_recog_area_c[0] - self.pedestrian_recog_area_wide_x[0]
+        p2.y = self.pedestrian_recog_area_c[1] - self.pedestrian_recog_area_wide_y
+        p2.z = self.pedestrian_center[2]
+        msg.polygon.points.append(p2)
+
+        p3 = Point()
+        # Closest point to the factory
+        p3.x = self.pedestrian_recog_area_c[0] - self.pedestrian_recog_area_wide_x[1]
+        p3.y = self.pedestrian_recog_area_c[1] - self.pedestrian_recog_area_wide_y
+        p3.z = self.pedestrian_center[2]
+        msg.polygon.points.append(p3)
+
+        p4 = Point()
+        # The point that is at the left of the car
+        p4.x = self.pedestrian_recog_area_c[0] - self.pedestrian_recog_area_wide_x[1]
+        p4.y = self.pedestrian_recog_area_c[1] + self.pedestrian_recog_area_wide_y
+        p4.z = self.pedestrian_center[2]
+        msg.polygon.points.append(p4)
+
+        self.pub_pedestrian_area_attention.publish(msg)
+        return
+
     def pedestrian_changes_cb(self, config, level):
         self.pedestrian_center[0] = config['x_pose']
         self.pedestrian_center[1] = config['y_pose']
         self.pedestrian_wide[0] =   config['x_size']
         self.pedestrian_wide[1] =   config['y_size']
+        self.pedestrian_recog_area_wide_x[0] = config['x_pedest_right']
+        self.pedestrian_recog_area_wide_x[1] = config['x_pedest_left']
         self.publish_pedestrian_area()
+        self.publish_pedestrian_area_attention()
         return config
 
+    def velodyne_cb(self, pointcloud):
+        # Transforming velodyne to map
+        transform = self.tf_buffer.lookup_transform("map", pointcloud.header.frame_id,    
+                                                    pointcloud.header.stamp, rospy.Duration(3.0))
+        pointcloud = do_transform_cloud(pointcloud, transform)
+        #pointcloud_map 
+        cloud_points = list(read_points(
+            pointcloud, skip_nans=True, field_names=("x", "y", "z")))
+        
+        person_found = []
+        for p in cloud_points:
+            px = p[0] - self.pedestrian_recog_area_c[0]
+            py = p[1] - self.pedestrian_recog_area_c[1]
+            if (abs(py) < self.pedestrian_recog_area_wide_y):
+                #print ((px,py))
+                #self.pedestrian_recog_area_wide_x = [-3.2, 2.5]
+                if (px > -self.pedestrian_recog_area_wide_x[0] and 
+                    px < -self.pedestrian_recog_area_wide_x[1]):
+                    person_found.append([p[0], p[1]])
+                    self.publish_person_found('CROSSING')
+                    self.publish_person_found_area(person_found)
+                    return 
+        self.publish_person_found('CLEAR')
+        return 
     
-# """         self.pub = rospy.Publisher("/pedestrian_detection",
-#                                    String, queue_size=1)
-#         rospy.loginfo("Publishing pedestrian detections to: " +
-#                       self.pub.resolved_name)
+    def publish_person_found(self, status):
+        rospy.loginfo('Publishing: ' + status)
+        self.pub_person_found.publish(status)
 
-#         # Subscribe to images?
-#         self.last_pointcloud = None
-#         self.pointcloud_sub = rospy.Subscriber('/velodyne_points',
-#                                                PointCloud2,
-#                                                self.pointcloud_cb,
-#                                                queue_size=1)
-#         rospy.loginfo("Subscribing to images at: " +
-#                       self.pointcloud_sub.resolved_name) """
+    def publish_person_found_area(self, position):
+        # Publishes a circle around the area where the person is placed
+        msg = PolygonStamped()
+        msg.header.frame_id = "/map"
 
-# """    def pointcloud_cb(self, pointcloud):
-#         self.last_pointcloud = pointcloud
+        for person in position:
+            px = person[0]
+            py = person[1]
+        r = 0.4
+        marker = Marker(
+                type=Marker.CUBE,
+                id=0,
+                lifetime=rospy.Duration(1.5),
+                pose=Pose(Point(px,py, 0), Quaternion(0, 0, 0, 1)),
+                scale=Vector3(r,r,2.0),
+                header=Header(frame_id='map'),
+                color=ColorRGBA(0.0, 1.0, 0.0, 0.8),
+                text="text")
+        self.pub_person_found_area.publish(marker)
 
-#     def detect_pedestrian(self, pointcloud):
-#         # Do magic code here
-#         # I would take an area of the pointcloud
-#         # that is over the zebra crossing
-#         # and check if there is a set of points over it
-#         # higher than the ground and in a meaningful amount
+        # p.append(Point())
+        # p4.x = self.pedestrian_center[0] 
+        # p4.y = self.pedestrian_center[1] + self.pedestrian_wide[1]
+        # p4.z = self.pedestrian_center[2]
+        # msg.polygon.points.append(p4)
 
-#         cloud_points = list(read_points(
-#             pointcloud, skip_nans=True, field_names=("x", "y", "z")))
 
-#         # if detection is true
-#         return 'CROSSING'
-#         # else:
-#         # return 'CLEAR'
-
-#     def pub_pedestrian_status(self, status):
-#         """
-#    """      Publishes the pedestrian status: """
-#         'CROSSING', 'CLEAR'
-#         """
-#         rospy.loginfo('Publishing: ' + status)
-#         self.pub.publish(status) """
 
     def run(self):
         rate = rospy.Rate(10)  # Detect at 10hz
         while not rospy.is_shutdown():
-            
-
-# """             if self.last_pointcloud is not None:
-#                 result = self.detect_pedestrian(self.last_pointcloud)
-#                 self.pub_pedestrian_status(result) """
             rate.sleep()
 
 
