@@ -35,3 +35,29 @@ From the point of view of the team "2easy". Mainly from the perspective of Sammy
 * We suffered a bug with the ETH-to-CAN board where it apparently overheated and stopped working correctly. The car didn't enter in autonomous mode. Autonomous mode is normally set by turning on the car, setting it in Neutral gear, pressing the green button of the wireless controller, then the big red button just next to the gear stick and then switching to D gear. The car should not move awaiting commands to move. This stopped happening. We are not sure if that was the case for sure, but it is very likely.
 * The other subteams (not Edu & Sam) didn't have Ubuntu neither ROS installed in their computers so they needed to install it in order to work with the rosbags recorded (and in general, to work).
 
+# Day 3
+
+* The breakfast was a little bit better than yesterday.
+* Quick meeting to review the work done the last day and the work to do today.
+* We decide to target mission 1 and 2 as goal for today.
+* Sam improves a bit the dummy code of the pedestrian detectors to define a path to follow for the chinease fellows.
+* Edu starts helping the chinease team members to use ROS and play rosbags. They take a video and focus as a reference and focus in pedestrian detector.
+* Edu keeps working in detecting the traffic light. Using the output of Yolo immage was cropped on the most probable traffic light.
+* Edu makes a tiny color detector over the image cropped. Boundaries in HSV are used to create masks on the image. The number of ones in the mask is used to stimate probability of red and green. The system works but with some green false positives.
+* Edu tunes the detector and filters out false positives. Green signal is only sent when more than 20 green images are seen (1-2 seconds expected in the real car)
+* Sam decides to create two launch files to wake up the full autoware without using the gui. Gui gives problems in configuration and errors are expected to be avoided with that.
+* Sam creates a rqt_reconfigure system to tune the steering gain.
+* Edu & Sam step in the car and start making experiments: 
+(from here on everything happens in the car, Edu & Sam point of view)
+* The curve after the pedestrian detector was used to tune the steering in life.
+* The node of life tuning was not working. Sam lifecodes changes. Several experiments demonstrates that a gain of 25 was necessary.
+* A large goal based path was saved around the arena.
+* An experiment around the full arena without stopping was made. The U-turn does not work. We decide that we will change the lookahead of the system for that (will require a shorter one).
+* The car looses control once achieving more than 12 km/h. A longer lookahead will be required for that. Edu decides that if has time tomorrow he will change the lookahead based in the speed.
+* Several small goal based paths where recorded based in roads between experiments. A wider U-turn makes the car drive smooth.
+* Edu & Sam returns with the car.
+* Edu merges the traffic light detector with the main in git and readys the car for using it (install yolo)
+* Sam prepares a system to test the first and second test.
+* The Chinease team was working in detecting the person with the camera. They have a bad time installing everything, but with the help of Sam, most of the required instalations are done.
+* Edu starts working in the pedestrian detector, afraid that the system will not be ready in time. It system works based in the Velodyne
+* We are forced to return at before 0:00 due to a really bad weather forecast.
