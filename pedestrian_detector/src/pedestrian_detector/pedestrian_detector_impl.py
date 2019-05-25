@@ -27,18 +27,26 @@ class PedestrianDetector(object):
 
         # Publishes the area where the pedestrian pass is
         self.pub_pedestrian_area = rospy.Publisher("/pedestrian_area_reference", PolygonStamped, queue_size=1, latch=True)
-        self.pedestrian_center = (42.689,79.109, -0.48)
-        self.pedestrian_wide = (48.564 - 42.689,81.691 - 79.109)
+        self.pedestrian_center = [42.3,78.9, -0.48]
+        self.pedestrian_wide = [6.5,4.0]
         self.publish_pedestrian_area()
-        self.pedestrian_area = DDynamicReconfigure("Pedestrian area")
-        self.pedestrian_area.add_variable('x pose','x_pose', 
-                                    self.pedestrian_center[0], min= 35, max = 85)
-        self.pedestrian_area.add_variable('y pose','y_pose', 
-                                    self.pedestrian_center[1], min= 70, max = 85)
-        self.pedestrian_area.add_variable('x size','x_size', 
-                                    self.pedestrian_wide[0], min= 0, max = 20)
-        self.pedestrian_area.add_variable('y size','y_size', 
-                                    self.pedestrian_wide[1], min= 0, max = 20)
+        self.pedestrian_area = DDynamicReconfigure("pedestrian_area")
+        self.pedestrian_area.add_variable('x_pose','x_pose', 
+                                    self.pedestrian_center[0], 
+                                    min= self.pedestrian_center[0] - 1, 
+                                    max = self.pedestrian_center[0] + 1)
+        self.pedestrian_area.add_variable('y_pose','y_pose', 
+                                    self.pedestrian_center[1], 
+                                    min= self.pedestrian_center[1] - 1, 
+                                    max = self.pedestrian_center[1] + 1)
+        self.pedestrian_area.add_variable('x_size','x_size', 
+                                    self.pedestrian_wide[0], 
+                                    min= self.pedestrian_wide[0] - 1, 
+                                    max = self.pedestrian_wide[0] + 1)
+        self.pedestrian_area.add_variable('y_size','y_size', 
+                                    self.pedestrian_wide[1], 
+                                    min= self.pedestrian_wide[1] - 1, 
+                                    max = self.pedestrian_wide[1] + 1)
         self.pedestrian_area.start(self.pedestrian_changes_cb)
 
 
@@ -72,11 +80,12 @@ class PedestrianDetector(object):
         self.pub_pedestrian_area.publish(msg)
         return
 
-    def pedestrian_changes_cb(config, level):
+    def pedestrian_changes_cb(self, config, level):
         self.pedestrian_center[0] = config['x_pose']
         self.pedestrian_center[1] = config['y_pose']
         self.pedestrian_wide[0] =   config['x_size']
         self.pedestrian_wide[1] =   config['y_size']
+        self.publish_pedestrian_area()
         return config
 
     
