@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This system tryes to detect if there is a pedestrian (or something infront of the car)-->
+
+<launch>
+  <node pkg="nodelet" type="nodelet" name="pcl_manager" args="manager" output="screen" />
+
+    <!-- Output will be a pointcloud
+    that only contains points representing a point for every 0.1m
+    where every point is in between z (height) 0.2 and 1.7 to
+    avoid false positives when detecting pedestrians 
+
+    More info:
+    http://wiki.ros.org/pcl_ros/Tutorials/filters
+    and
+    Tutorial:
+    http://wiki.ros.org/pcl_ros/Tutorials/VoxelGrid%20filtering
+
+    You can tune the values of this node using dynamic reconfigure with:
+    rosrun rqt_reconfigure rqt_reconfigure
+    -->
+  <!-- Run a VoxelGrid filter to clean NaNs and downsample the data -->
+  <!-- Downsampling in z -->
+  <node pkg="nodelet" type="nodelet" name="voxel_grid_z" args="load pcl/VoxelGrid pcl_manager" output="screen">
+    <remap from="~input" to="/points_raw"/>
+    <remap from="~output" to="/velodyne_downsampled_z" />
+
+    <rosparam>
+      filter_field_name: z
+      filter_limit_min: 0.20
+      filter_limit_max: 1.7
+      filter_limit_negative: False
+      leaf_size: 0.1
+      input_frame: base_link
+      output_frame: base_link
+    </rosparam>
+  </node>
+
+  <!-- Downsampling in x -->
+  <node pkg="nodelet" type="nodelet" name="voxel_grid_x" args="load pcl/VoxelGrid pcl_manager" output="screen">
+    <remap from="~input" to="/velodyne_downsampled_z"/>
+    <remap from="~output" to="/velodyne_downsampled_xz" />
+    <rosparam>
+      filter_field_name: x
+      filter_limit_min: -50.0
+      filter_limit_max: 3.0
+      filter_limit_negative: True
+      leaf_size: 0.2
+      input_frame: base_link
+      output_frame: base_link
+    </rosparam>
+  </node> 
+
+    <!-- Downsampling in y -->
+  <node pkg="nodelet" type="nodelet" name="voxel_grid_y" args="load pcl/VoxelGrid pcl_manager" output="screen">
+    <remap from="~input" to="/velodyne_downsampled_xz"/>
+    <remap from="~output" to="/velodyne_downsampled_xyz" />
+    <rosparam>
+      filter_field_name: y
+      filter_limit_min: -15.0
+      filter_limit_max: 15.0
+      filter_limit_negative: False
+      leaf_size: 0.2
+      input_frame: base_link
+      output_frame: base_link
+    </rosparam>
+  </node>
+  
+  <node pkg="pedestrian_detector" type="detector.py" name="pedestrian_detector" output="screen"/>
+</launch>

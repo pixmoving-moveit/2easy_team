@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This system launches nodes to detec if there is a pedestrian infront of the car-->
+
+<launch>
+        <!-- Start darknet and ros wrapper -->
+	<include file="$(find pedestrian_detector)/launch/pedestrian_detector.launch"/>
+
+        <arg name="bags_path" default="$(find pedestrian_detector)/bags"/> 
+        <!-- Executes all bags-->
+
+	<!-- <node name="rosbag0" pkg="rosbag" type="play" args="-d 1 -q -r 0.3 $(arg bags_path)/pedestrian_2019-05-24-19-40-53.bag" output="screen">
+	</node> -->
+
+        <node name="rosbag0" pkg="rosbag" type="play" args="-d 5 -q -r 1.3 $(arg bags_path)/pedestrian_2019-05-25-13-07-34.bag" output="screen">
+	</node>
+        
+        <node name="reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure">
+	</node>      
+  
+</launch>
