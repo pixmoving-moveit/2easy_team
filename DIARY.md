@@ -38,9 +38,9 @@ From the point of view of the team "2easy". Mainly from the perspective of Sammy
 # Day 3
 
 * The breakfast was a little bit better than yesterday.
-* Quick meeting to review the work done the last day and the work to do toda.
+* Quick meeting to review the work done the last day and the work to do today.
 * We decide to target mission 1 and 2 as goal for today.
-* Sam improves a bit the dummy code of the pedestrian detectors to define a path to follow.
+* Sam improves a bit the dummy code of the pedestrian detectors to define a path to follow for the chinease fellows.
 * Edu starts helping the chinease team members to use ROS and play rosbags. They take a video and focus as a reference and focus in pedestrian detector.
 * Edu keeps working in detecting the traffic light. Using the output of Yolo immage was cropped on the most probable traffic light.
 * Edu makes a tiny color detector over the image cropped. Boundaries in HSV are used to create masks on the image. The number of ones in the mask is used to stimate probability of red and green. The system works but with some green false positives.
