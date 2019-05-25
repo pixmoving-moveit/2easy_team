@@ -28,7 +28,7 @@ class RvizToWaypoints(object):
         ln = Lane()
         wp = Waypoint()
         wp.pose = msg
-        wp.twist.twist.linear.x = 2.0
+        wp.twist.twist.linear.x = 0.0
         ln.waypoints.append(wp)
         self.pub.publish(ln)
         rospy.loginfo("Published /final_waypoints")
