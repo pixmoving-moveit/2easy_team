@@ -38,10 +38,11 @@ class RvizToWaypoints(object):
         # Make a pre-goal pose 0.5m before with 7km/h speed
         o = msg.pose.orientation
         _, _, yaw = euler_from_quaternion([o.x, o.y, o.z, o.w])
-        wp.pose.pose.position.x -= math.cos(yaw) * 0.5
-        wp.pose.pose.position.y -= math.sin(yaw) * 0.5 
+        wp.pose.pose.position.x -= (math.cos(yaw) * 0.5)
+        wp.pose.pose.position.y -= (math.sin(yaw) * 0.5)
         # Add another point after with 0 speed to stop at the goal
         wp_stop = Waypoint()
+        wp_stop.twist.twist.linear.x = 0.0
         wp_stop.pose = deepcopy(msg)
         ln.waypoints.append(wp)
         ln.waypoints.append(wp_stop)

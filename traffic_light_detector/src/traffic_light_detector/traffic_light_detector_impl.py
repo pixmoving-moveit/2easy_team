@@ -40,6 +40,8 @@ class TrafficLightDetector(object):
             rospy.logwarn("Ignoring the reduction factor")
             self.reduction_factor = 0
 
+        self.images_sent = 0
+
         self.cv_last_img = None
         self.bridge = CvBridge()
         self.img_sub = rospy.Subscriber('/camera0/image_raw', Image, self.cropper2yolo_cb,
@@ -79,7 +81,7 @@ class TrafficLightDetector(object):
         self.img2yolo_pub.publish(self.bridge.cv2_to_imgmsg(cv_img, encoding="bgr8"))
 
         # Debug code
-        if (self.images_sent == 0):
+        if self.images_sent == 0:
             self.t_start_yolo = time.time()
             self.images_sent = 1
         else:
