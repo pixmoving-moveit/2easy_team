@@ -3,23 +3,12 @@
 
 <launch>
         <!-- Start darknet and ros wrapper -->
-	<!--include file="$(find traffic_light_detector)/launch/traffic_light_detector.launch"/-->
+	<include file="$(find pedestrian_detector)/launch/pedestrian_detector.launch"/>
 
         <arg name="bags_path" default="$(find pedestrian_detector)/bags"/> 
         <!-- Executes all bags-->
 
-	
-	<!-- This one is good to test the color of the light-->
-		<!--node name="rosbag3" pkg="rosbag" type="play" args="-d 1 -q -r 1.0 $(arg bags_path)/rosbags_day2/traffic_light_2019-05-23-10-20-35.bag" output="screen">
-	</node-->
-	<!--node name="rosbag2" pkg="rosbag" type="play" args="-d 1 -q -r 1.0 $(arg bags_path)/rosbags_day2/traffic_light_2019-05-23-10-19-34.bag" output="screen">
-	</node-->
-
-	
-	<!-- With those rosbags works -->
-	<!--node name="rosbag1" pkg="rosbag" type="play" args="-d 1 -l -q -r 0.7 $(arg bags_path)/rosbags_day2/traffic_light_2019-05-23-10-18-31.bag" output="screen">
-	</node-->
-	<node name="rosbag0" pkg="rosbag" type="play" args="-d 1 -q -l -r 1.0 $(arg bags_path)/pedestrian_2019-05-23-10-22-01.bag" output="screen">
+	<node name="rosbag0" pkg="rosbag" type="play" args="-d 1 -q -r 0.3 $(arg bags_path)/pedestrian_2019-05-24-19-40-53.bag" output="screen">
 	</node>
 
   
