@@ -6,7 +6,7 @@
         output="screen"/>
 
     <node pkg="moving_hackathon_tools"
-        name="base_car_software"
+        name="waypoints_sw"
         type="run_waypoints_nodes.py"
         output="screen"/>
 

@@ -13,23 +13,30 @@ class FollowWaypointsFile(object):
         mission_wp_path = rp.get_path(
             'competition_sm') + "/../waypoints_data/missions/"
         rospy.loginfo("mission_wp_path: " + str(mission_wp_path))
+        rospy.loginfo("waypoints csv: " + str(waypoints_csv))
         precommand = "source ~/Autoware/ros/install/local_setup.bash; "
         self.wp_loader_cmd = ShellCmd(precommand + "roslaunch waypoint_maker waypoint_loader.launch load_csv:=True multi_lane_csv:=" + mission_wp_path + waypoints_csv +
                                       " replanning_mode:=False realtime_tuning_mode:=False resample_mode:=True resample_interval:=1 replan_curve_mode:=False overwrite_vmax_mode:=False replan_endpoint_mode:=True velocity_max:=20 radius_thresh:=20 radius_min:=6 velocity_min:=4 accel_limit:=0.5 decel_limit:=0.3 velocity_offset:=4 braking_distance:=5 end_point_offset:=1")
         self.path_select_cmd = ShellCmd(precommand +
                                         "sleep 3; rosrun lattice_planner path_select")
+        self.lane_select_cmd = ShellCmd(precommand + "roslaunch lane_planner lane_select.launch")
+        rospy.sleep(10.0)
         # rospy.sleep(10.0)
-        # while not self.wp_loader_cmd.is_done():
+        # if "curve" in waypoints_csv:
+        #     while not self.wp_loader_cmd.is_done() and not rospy.is_shutdown():
+        #         rospy.logwarn(self.wp_loader_cmd.get_stdout())
+        #         rospy.logerr(self.wp_loader_cmd.get_stderr())
+        #         rospy.sleep(0.5)
         #     rospy.logwarn(self.wp_loader_cmd.get_stdout())
         #     rospy.logerr(self.wp_loader_cmd.get_stderr())
-        # rospy.logwarn(self.wp_loader_cmd.get_stdout())
-        # rospy.logerr(self.wp_loader_cmd.get_stderr())
 
     def kill(self):
         if not self.wp_loader_cmd.is_done():
             self.wp_loader_cmd.kill()
         if not self.path_select_cmd.is_done():
             self.path_select_cmd.kill()
+        if not self.lane_select_cmd.is_done():
+            self.lane_select_cmd.kill()
 
     def wait_to_reach_last_waypoint(self, callback=None):
         """
@@ -39,7 +46,7 @@ class FollowWaypointsFile(object):
         """
         rospy.loginfo("Waiting for /base_waypoints...")
         bw = rospy.wait_for_message('/base_waypoints', Lane)
-        self.last_waypoint_id = len(bw.waypoints) - 1
+        self.last_waypoint_id = len(bw.waypoints) - 2
         rospy.loginfo("Got base_waypoints of len: " +
                       str(self.last_waypoint_id))
         self.closest_waypoint = -1
@@ -59,6 +66,6 @@ class FollowWaypointsFile(object):
                 rospy.loginfo("Current closest waypoint ID " + str(self.closest_waypoint) +
                               " (waiting for " + str(self.last_waypoint_id) + ")")
                 rospy.sleep(0.1)
-            rospy.loginfo("We reached the last waypoint!")
+            rospy.loginfo("We reached the last waypoint! (" + str(self.closest_waypoint) + "==" + str(self.last_waypoint_id))
         else:
             rospy.loginfo("Callback provided, not blocking.")

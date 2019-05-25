@@ -16,6 +16,8 @@ class MoveUntilTrafficLight(smach.State):
         # we reach the goal
         fwf = FollowWaypointsFile('mission_1_until_stop.csv')
         fwf.wait_to_reach_last_waypoint()
+        fwf.kill()
+        del fwf
 
         return 'succeeded'
         # if something went wrong
@@ -56,6 +58,8 @@ class MoveCurve(smach.State):
         # we reach the goal
         fwf = FollowWaypointsFile('mission_1_curve_to_pedestrian.csv')
         fwf.wait_to_reach_last_waypoint()
+        fwf.kill()
+        del fwf
 
         return 'succeeded'
         # if something went wrong
