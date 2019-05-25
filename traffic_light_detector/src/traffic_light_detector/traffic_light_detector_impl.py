@@ -4,6 +4,7 @@
 
 # Python
 import numpy as np
+import time
 
 # ROS
 import rospy
@@ -32,7 +33,7 @@ class TrafficLightDetector(object):
     def __init__(self):
         # Subscribing to the image
         self.reduction_factor = 0.5
-        self.necessary_greens2understand_green = 6
+        self.necessary_greens2understand_green = 2
         self.necessary_reds2understand_red = 0
 
         if (self.reduction_factor >= 1 or self.reduction_factor <= 0):
@@ -46,7 +47,7 @@ class TrafficLightDetector(object):
         rospy.loginfo("Subscribing to images at: " + self.img_sub.resolved_name)
 
         # Publishing new images prepared for Yolo
-        self.img_pub = rospy.Publisher("/camera0/image_for_yolo", Image, queue_size=1)
+        self.img2yolo_pub = rospy.Publisher("/camera0/image_for_yolo", Image, queue_size=1)
         rospy.loginfo("Publishes the image to: /camera0/image_for_yolo")
 
         # Receives feedback from Yolo (crops this area of the image)
@@ -67,7 +68,6 @@ class TrafficLightDetector(object):
         self.pub = rospy.Publisher("/traffic_light_status", String, queue_size=1, latch=True)
         rospy.loginfo("Publishing traffic light detections to: " + self.pub.resolved_name)
 
-
     def cropper2yolo_cb(self, img):
         # Cropping the image (makes it faster and easier for yolo) and publishing it
         cv_img = self.bridge.imgmsg_to_cv2(img,desired_encoding="bgr8")
@@ -76,11 +76,24 @@ class TrafficLightDetector(object):
         rf = self.reduction_factor/2.0
         cv_img = cv_img[int(rf*h):int((1-rf)*h),int(rf*w):int((1-rf)*w)]
         self.cv_last_img = cv_img
-        self.img_pub.publish(self.bridge.cv2_to_imgmsg(cv_img, encoding="bgr8"))
-        self.wait_for_yolo = True
+        self.img2yolo_pub.publish(self.bridge.cv2_to_imgmsg(cv_img, encoding="bgr8"))
 
+        # Debug code
+        if (self.images_sent == 0):
+            self.t_start_yolo = time.time()
+            self.images_sent = 1
+        else:
+            self.images_sent += 1
+        
     def yolo_output_cb(self, msg):
         # Search for the most probable traffic light
+        
+        # Debug code
+        self.t_end_yolo = time.time()
+        rospy.loginfo("Yolo took " + str(self.t_end_yolo-self.t_start_yolo))
+        rospy.loginfo("The system have sent in this time %d images to yolo", self.images_sent)
+        self.images_sent = 0
+
         traf_found = None
         for b_box in msg.bounding_boxes:
             if (b_box.Class == "traffic light"):
@@ -105,7 +118,7 @@ class TrafficLightDetector(object):
             self.img_green_pub.publish(self.bridge.cv2_to_imgmsg(cv_green_masked,   encoding="bgr8"))
             rospy.loginfo("Sending Images")
             self.detect_traffic_light_status(p_green, p_red)
-
+        
     def masked_by_color(self,img, low_mask, high_mask):
         # Note: It does not return a probability, but a number of points in the color
         # Applies a mask trying to extract only the specified color
@@ -162,6 +175,8 @@ class TrafficLightDetector(object):
 
         rospy.loginfo(msg)        
         return
+
+    #def no_result_cb(event):
 
     def pub_traffic_light_status(self):
         """
