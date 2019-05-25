@@ -20,7 +20,7 @@ class FollowWaypointsFile(object):
         self.path_select_cmd = ShellCmd(precommand +
                                         "sleep 3; rosrun lattice_planner path_select")
         self.lane_select_cmd = ShellCmd(precommand + "roslaunch lane_planner lane_select.launch")
-        rospy.sleep(10.0)
+        rospy.sleep(2.0)
         # rospy.sleep(10.0)
         # if "curve" in waypoints_csv:
         #     while not self.wp_loader_cmd.is_done() and not rospy.is_shutdown():

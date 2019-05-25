@@ -2,6 +2,7 @@
 
 import rospy
 import smach
+import smach_ros
 from std_msgs.msg import String
 from follow_waypoints import FollowWaypointsFile
 
@@ -46,7 +47,7 @@ class WaitForPedestrianToCross(smach.State):
         return 'pedestrian_crossed'
 
 
-class MoveCurve(smach.State):
+class MoveCurveChangeLaneAndStop(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['succeeded', 'failed'])
 
@@ -61,7 +62,16 @@ class MoveCurve(smach.State):
         # return 'failed'
 
 
-def mission_2():
+def mission_2_sm():
+    sm = get_mission_2()
+
+    sis = smach_ros.IntrospectionServer('mission_2', sm, '/SM_ROOT')
+    sis.start()
+    # Execute SMACH plan
+    outcome = sm.execute()
+
+
+def get_mission_2_and_3_sm():
 
     # Create a SMACH state machine
     sm = smach.StateMachine(outcomes=['succeeded', 'failed'])
@@ -76,14 +86,12 @@ def mission_2():
         #                            'failed': 'failed'})
         smach.StateMachine.add('Wait_for_pedestrian_to_cross',
                                WaitForPedestrianToCross(),
-                               transitions={'pedestrian_crossed': 'Move_curve'})
-        smach.StateMachine.add('Move_curve',
-                               MoveCurve(),
+                               transitions={'pedestrian_crossed': 'Move_curve_change_lane_and_stop'})
+        smach.StateMachine.add('Move_curve_change_lane_and_stop',
+                               MoveCurveChangeLaneAndStop(),
                                transitions={'succeeded': 'succeeded',
                                             'failed': 'failed'})
-
-    # Execute SMACH plan
-    outcome = sm.execute()
+    return sm
 
 
 if __name__ == '__main__':

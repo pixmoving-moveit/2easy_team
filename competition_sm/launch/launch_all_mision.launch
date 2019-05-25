@@ -1,0 +1,12 @@
+<launch>
+
+    <!-- Launch the actual mission state machine -->
+    <node pkg="competition_sm" name="mission_1_sm" type="all_missions.py"
+        output="screen"/>
+
+    <!-- Launch visualization of the state machine -->
+    <node pkg="smach_viewer"
+        name="smach_viewer"
+        type="smach_viewer.py" />
+
+</launch>

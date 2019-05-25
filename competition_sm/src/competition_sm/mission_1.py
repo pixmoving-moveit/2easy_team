@@ -2,6 +2,7 @@
 
 import rospy
 import smach
+import smach_ros
 from std_msgs.msg import String
 from follow_waypoints import FollowWaypointsFile
 
@@ -66,8 +67,7 @@ class MoveCurve(smach.State):
         # return 'failed'
 
 
-def mission_1():
-
+def get_mission_1_sm():
     # Create a SMACH state machine
     sm = smach.StateMachine(outcomes=['succeeded', 'failed'])
 
@@ -86,6 +86,13 @@ def mission_1():
                                MoveCurve(),
                                transitions={'succeeded': 'succeeded',
                                             'failed': 'failed'})
+    return sm
+
+
+def mission_1():
+    sm = get_mission_1_sm()
+    sis = smach_ros.IntrospectionServer('mission_1', sm, '/SM_ROOT')
+    sis.start()
 
     # Execute SMACH plan
     outcome = sm.execute()
