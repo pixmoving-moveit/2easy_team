@@ -4,6 +4,7 @@ This repository contains the code from the team "2easy" composed by:
 
 * Sammy Pfeiffer (Sammy.Pfeiffer at student.uts.edu.au)
 * Eduardo Ferrera (eferrera at catec.aero)
+* Wang Guangwei (gwwang at gzu.edu.cn)
 * Axing Xi (948085419 At qq.com)
 * Zihao Liu (360472051 at qq.com)
 * HaoLong Fu (1165081323 at qq.com)
