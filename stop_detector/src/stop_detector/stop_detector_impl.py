@@ -26,7 +26,7 @@ class StopDetector(object):
 
     def __init__(self):
         # It only pays attention to the stop sign if is at the right
-        self.reduction_factor = 0.5
+        self.reduction_factor = 0.6
 
         self.pub = rospy.Publisher("/stop_detection_status",
                                    String, queue_size=1)
@@ -127,7 +127,7 @@ class StopDetector(object):
         # Grabing the size of the image
         (h, w) = cv_img.shape[:2]
         rf = self.reduction_factor
-        cv_img = cv_img[int(0):int(rf*h),int(rf*w):int(1*w)]
+        cv_img = cv_img[int(0.15*h):int(rf*h),int(rf*w):int(1*w)]
         img = self.bridge.cv2_to_imgmsg(cv_img, encoding="bgr8")
         
         self.img2yolo = img
