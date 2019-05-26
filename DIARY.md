@@ -61,3 +61,28 @@ From the point of view of the team "2easy". Mainly from the perspective of Sammy
 * The Chinease team was working in detecting the person with the camera. They have a bad time installing everything, but with the help of Sam, most of the required instalations are done.
 * Edu starts working in the pedestrian detector, afraid that the system will not be ready in time. It system works based in the Velodyne
 * We are forced to return at before 0:00 due to a really bad weather forecast.
+
+# Day 4
+* Edu finally overcomed the jetlag.
+* Sam went have breakfast alone; it was slighly better. There was some green cookies!!
+* Quick meeting to review the work done the last day and the work to do today.
+* Chinease team will work in pedestrian detector by camera, Edu by velodyne. Sam will keep working in glue everything with a state machine.
+* Edu filters out a large ammount of points with a plc_manager over nodelets. Points are seen in as if the velodyne where in a squared tunel. Points behind the car are also out.
+* Sam and Edu test the state machine in the car and fixed some bugs.
+* Sam keeps working on the state machine. Squeletom of the state machine was made.
+
+# Global Expo Start (Midd day)
+* Announcement of the Hackathon was made.   
+* We had a lot of fun having pictures with our faces and our names printed in a hudge fotocall.
+* Several speaches are given by the organizers.
+* Edu gives a speach on behalf of all participants. He mentions the great effort that Nancy made to suppor us and thanks Pixmoving and Global Expo for the organization of the even.
+
+(going back to work)
+* Wang Guangwei (chinease professor) joins again the team to support his students. He start playing with Yolo
+* Edu creates a second filter to check when there is a pedestrian in the pedestrian area. Is configurable with rqt_reconfigure, so slight changes can be afforded. It is not a generic solution.
+* Wang is capable to detect persons with Yolo. Due to the lack of time and necessary implementation, we make him move to detect the stop signal.
+* The car was tested again by Edu and Sam.
+* Sam test again the state machine.
+* Edu's filter is tested with the real car. It works fuk** amazing!!! (Edu is writting this post)
+* Sam test the car with the keyboard and with the teleoperation keypad
+* Edu and Sam starts to be kind of tired. Some code mistakes where made and idiotic short missundertandings started happening. We decided to go to sleep before make a mistake in the code.
