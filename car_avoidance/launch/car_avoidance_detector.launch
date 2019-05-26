@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This system tryes to detect if there is a pedestrian (or something infront of the car)-->
+
+<launch>
+  
+  
+  <node pkg="car_avoidance" type="detector.py" name="car_avoidance_detector" output="screen"/>
+</launch>

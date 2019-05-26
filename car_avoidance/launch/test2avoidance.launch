@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This system launches nodes to detect if there is an obstacle infront of the car-->
+
+<launch>
+        <node pkg="nodelet" type="nodelet" name="pcl_manager" args="manager" output="screen" />
+
+        <!-- The following boxel grid is originaly launched in the pedestrian detector -->
+        <!-- Run a VoxelGrid filter to clean NaNs and downsample the data -->
+        <!-- Downsampling in z -->
+        <node pkg="nodelet" type="nodelet" name="voxel_grid_z" args="load pcl/VoxelGrid pcl_manager" output="screen">
+        <remap from="~input" to="/points_raw"/>
+        <remap from="~output" to="/velodyne_downsampled_z" />
+
+        <rosparam>
+        filter_field_name: z
+        filter_limit_min: 0.20
+        filter_limit_max: 1.7
+        filter_limit_negative: False
+        leaf_size: 0.1
+        input_frame: base_link
+        output_frame: base_link
+        </rosparam>
+        </node>
+
+        <!-- Downsampling in x -->
+        <node pkg="nodelet" type="nodelet" name="voxel_grid_x" args="load pcl/VoxelGrid pcl_manager" output="screen">
+        <remap from="~input" to="/velodyne_downsampled_z"/>
+        <remap from="~output" to="/velodyne_downsampled_xz" />
+        <rosparam>
+        filter_field_name: x
+        filter_limit_min: -50.0
+        filter_limit_max: 3.0
+        filter_limit_negative: True
+        leaf_size: 0.2
+        input_frame: base_link
+        output_frame: base_link
+        </rosparam>
+        </node> 
+
+        <!-- Downsampling in y -->
+        <node pkg="nodelet" type="nodelet" name="voxel_grid_y" args="load pcl/VoxelGrid pcl_manager" output="screen">
+        <remap from="~input" to="/velodyne_downsampled_xz"/>
+        <remap from="~output" to="/velodyne_downsampled_xyz" />
+        <rosparam>
+        filter_field_name: y
+        filter_limit_min: -15.0
+        filter_limit_max: 15.0
+        filter_limit_negative: False
+        leaf_size: 0.2
+        input_frame: base_link
+        output_frame: base_link
+        </rosparam>
+        </node>
+
+        <!-- Start the car avoidance system -->
+	<include file="$(find car_avoidance)/launch/car_avoidance_detector.launch"/> 
+
+        <arg name="bags_path" default="$(find pedestrian_detector)/bags"/> 
+        
+
+	<node name="rosbag0" pkg="rosbag" type="play" args="-d 1 -q -r 0.3 $(arg bags_path)/pedestrian_2019-05-24-19-40-53.bag" output="screen">
+	</node> 
+
+        <!-- <node name="rosbag0" pkg="rosbag" type="play" args="-d 5 -q -r 1.3 $(arg bags_path)/pedestrian_2019-05-25-13-07-34.bag" output="screen">
+	</node> -->
+        
+        <node name="reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure">
+	</node>       
+  
+</launch>
