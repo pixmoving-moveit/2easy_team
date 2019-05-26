@@ -88,7 +88,7 @@ class MoveCurve(smach.State):
         # Send a goal to our "Move using waypoints" server and wait until
         # we reach the goal
         fwf = FollowWaypointsFile('mission_1_curve_to_pedestrian.csv',
-                                  consider_done_on_waypoint_id=74)
+                                  consider_done_on_waypoint_id=75)
         fwf.wait_to_reach_last_waypoint()
         fwf.kill()
         del fwf

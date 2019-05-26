@@ -15,7 +15,7 @@ class DoUTurnAndGoToStop(smach.State):
         rospy.loginfo('Executing state ' + self.__class__.__name__)
         # Send a goal to our "Move using waypoints" server and wait until
         # we reach the goal
-        fwf = FollowWaypointsFile('mission_5_uturn_new.csv')
+        fwf = FollowWaypointsFile('mission_5_uturn.csv')
         fwf.wait_to_reach_last_waypoint()
         return 'succeeded'
         # if something went wrong
