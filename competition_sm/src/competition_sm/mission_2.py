@@ -20,6 +20,8 @@ class StartPedestrianDetector(smach.State):
         detector_process = ShellCmd(
             "roslaunch pedestrian_detector pedestrian_detector.launch")
         # detector_process = ShellCmd("rostopic pub /test std_msgs/String test -r 2")
+
+        rospy.sleep(5.0)  # Give some time to person to cross
         return 'succeeded'
 
 
