@@ -28,13 +28,16 @@ class DetectStop(smach.State):
         rospy.logwarn(
             "Waiting for /stop_sign_detected to maybe give a detection")
         ini_t = time.time()
-        while not rospy.is_shutdown() and self.stop_sign_detected is None and time.time() - ini_t < 10.0:
+        while not rospy.is_shutdown() and \
+                self.stop_sign_detected is None or self.stop_sign_detected == 'GO' and \
+                time.time() - ini_t < 10.0:
             rospy.sleep(0.1)
         rospy.loginfo("finished waiting! got a detection?: " +
                       str(self.stop_sign_detected))
-        if self.stop_sign_detected is None:
+        if self.stop_sign_detected is None or self.stop_sign_detected == 'GO':
             return 'timeout'
         if self.stop_sign_detected.upper() == 'STOP':
+            self.stop_sign_detected = None
             return 'stop_detected'
 
 
@@ -144,13 +147,50 @@ def get_mission_6_and_7_sm():
 
         smach.StateMachine.add('Concurrent_stop_and_go', sm_con,
                                transitions={
-                                   'finished_waypoints': 'Do_s_cones'}
+                                   'finished_waypoints': 'Concurrent_stop_and_go2'}
                                )
 
-        smach.StateMachine.add('Do_s_cones',
-                               MoveSCones(),
-                               transitions={'succeeded': 'succeeded',
-                                            'failed': 'failed'})
+
+        stop_sm2 = smach.StateMachine(outcomes=['succeeded'])
+        with stop_sm2:
+            smach.StateMachine.add('Detect_stop2',
+                                   DetectStop(),
+                                   transitions={'stop_detected':
+                                                'Stop_at_place_3s2',
+                                                'timeout':
+                                                'succeeded'})
+
+            smach.StateMachine.add('Stop_at_place_3s2',
+                                   StopAtPlace3s(),
+                                   transitions={
+                                       'succeeded': 'succeeded'
+                                   })
+
+        def child_term_cb(outcome_map):
+            rospy.loginfo("Returning true on child_term_cb")
+            # This will stop the other states
+            return True
+
+        sm_con2 = smach.Concurrence(
+            outcomes=[
+                'finished_waypoints'
+            ],
+            default_outcome='finished_waypoints',
+            outcome_map={'finished_waypoints': {'Detect_and_stop2': 'succeeded'},
+                         'finished_waypoints': {'Do_s_cones': 'succeeded'}},
+            child_termination_cb=child_term_cb
+            # outcome_cb=out_cb
+        )
+
+        with sm_con2:
+            smach.Concurrence.add('Detect_and_stop2',
+                                  stop_sm2)
+            smach.Concurrence.add('Do_s_cones',
+                                  MoveSCones())
+
+        smach.StateMachine.add('Concurrent_stop_and_go2',
+                               sm_con2,
+                               transitions={'finished_waypoints': 'succeeded'})
 
     return sm
 
