@@ -96,7 +96,8 @@ pose:
     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
     0.0, 0.0, 0.0, 0.0, 0.0, 0.0]\" --once""",
         "rosrun moving_hackathon_tools start_camera.sh",
-        "roslaunch runtime_manager vehicle_socket.launch"
+        "roslaunch runtime_manager vehicle_socket.launch",
+        "rosrun moving_hackathon_tools twist_gains.py"
     ]
 
     executed_commands = []
