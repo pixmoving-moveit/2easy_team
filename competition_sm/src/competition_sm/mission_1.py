@@ -5,6 +5,35 @@ import smach
 import smach_ros
 from std_msgs.msg import String
 from follow_waypoints import FollowWaypointsFile
+from shellcmd import ShellCmd
+
+global detector_process
+
+
+class StartTrafficLightDetector(smach.State):
+    def __init__(self):
+        smach.State.__init__(self, outcomes=['succeeded'])
+
+    def execute(self, userdata):
+        global detector_process
+        rospy.loginfo("Launching detector")
+        detector_process = ShellCmd(
+            "roslaunch traffic_light_detector traffic_light_detector.launch")
+        # detector_process = ShellCmd("rostopic pub /test std_msgs/String test -r 2")
+        return 'succeeded'
+
+
+class StopTrafficLightDetector(smach.State):
+    def __init__(self):
+        smach.State.__init__(self, outcomes=['succeeded'])
+
+    def execute(self, userdata):
+        global detector_process
+        if detector_process is not None:
+            rospy.loginfo("Killing detector")
+            if not detector_process.is_done():
+                detector_process.kill()
+        return 'succeeded'
 
 
 class MoveUntilTrafficLight(smach.State):
@@ -74,6 +103,10 @@ def get_mission_1_sm():
     # Open the container
     with sm:
         # Add states to the container
+        smach.StateMachine.add('Start_traffic_light_detector',
+                               StartTrafficLightDetector(),
+                               transitions={
+                                   'succeeded': 'Move_until_traffic_light'})
         smach.StateMachine.add('Move_until_traffic_light',
                                MoveUntilTrafficLight(),
                                transitions={
@@ -84,8 +117,12 @@ def get_mission_1_sm():
                                transitions={'got_green': 'Move_curve'})
         smach.StateMachine.add('Move_curve',
                                MoveCurve(),
-                               transitions={'succeeded': 'succeeded',
+                               transitions={'succeeded': 'Stop_traffic_light_detector',
                                             'failed': 'failed'})
+        smach.StateMachine.add('Stop_traffic_light_detector',
+                               StopTrafficLightDetector(),
+                               transitions={
+                                   'succeeded': 'succeeded'})
     return sm
 
 

@@ -39,6 +39,20 @@ class DetectObstacle(smach.State):
             self.execute(userdata)
 
 
+class MoveCurve(smach.State):
+    def __init__(self):
+        smach.State.__init__(self, outcomes=['succeeded', 'failed'])
+
+    def execute(self, userdata):
+        rospy.loginfo('Executing state ' + self.__class__.__name__)
+        # Send a goal to our "Move using waypoints" server and wait until
+        # we reach the goal
+        fwf = FollowWaypointsFile('mission_4_curve.csv')
+        fwf.wait_to_reach_last_waypoint()
+        del fwf
+        return 'succeeded'
+
+
 class MoveLeft(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['succeeded', 'failed'])
@@ -83,6 +97,11 @@ def get_mission_4_sm():
 
     # Open the container
     with sm:
+        smach.StateMachine.add('Move_curve',
+                               MoveCurve(),
+                               transitions={'succeeded': 'Detect_obstacle_side',
+                                            'failed': 'failed'})
+
         smach.StateMachine.add('Detect_obstacle_side',
                                DetectObstacle(),
                                transitions={

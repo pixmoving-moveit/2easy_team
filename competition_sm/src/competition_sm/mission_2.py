@@ -5,22 +5,35 @@ import smach
 import smach_ros
 from std_msgs.msg import String
 from follow_waypoints import FollowWaypointsFile
+from shellcmd import ShellCmd
+
+global detector_process
 
 
-# class MoveUntilZebraCrossing(smach.State):
-#     def __init__(self):
-#         smach.State.__init__(self, outcomes=['succeeded', 'failed'])
+class StartPedestrianDetector(smach.State):
+    def __init__(self):
+        smach.State.__init__(self, outcomes=['succeeded'])
 
-#     def execute(self, userdata):
-#         rospy.loginfo('Executing state ' + self.__class__.__name__)
-#         # Send a goal to our "Move using waypoints" server and wait until
-#         # we reach the goal
-#         fwf = FollowWaypointsFile('mission_2_drive_curve.csv')
-#         fwf.wait_to_reach_last_waypoint()
+    def execute(self, userdata):
+        global detector_process
+        rospy.loginfo("Launching detector")
+        detector_process = ShellCmd(
+            "roslaunch pedestrian_detector pedestrian_detector.launch")
+        # detector_process = ShellCmd("rostopic pub /test std_msgs/String test -r 2")
+        return 'succeeded'
 
-#         return 'succeeded'
-#         # if something went wrong
-#         # return 'failed'
+
+class StopPedestrianDetector(smach.State):
+    def __init__(self):
+        smach.State.__init__(self, outcomes=['succeeded'])
+
+    def execute(self, userdata):
+        global detector_process
+        if detector_process is not None:
+            rospy.loginfo("Killing detector")
+            if not detector_process.is_done():
+                detector_process.kill()
+        return 'succeeded'
 
 
 class WaitForPedestrianToCross(smach.State):
@@ -62,8 +75,8 @@ class MoveCurveChangeLaneAndStop(smach.State):
         # return 'failed'
 
 
-def mission_2_sm():
-    sm = get_mission_2()
+def mission_2():
+    sm = get_mission_2_and_3_sm()
 
     sis = smach_ros.IntrospectionServer('mission_2', sm, '/SM_ROOT')
     sis.start()
@@ -78,19 +91,21 @@ def get_mission_2_and_3_sm():
 
     # Open the container
     with sm:
-        # Add states to the container
-        # smach.StateMachine.add('Move_until_zebra_crossing',
-        #                        MoveUntilZebraCrossing(),
-        #                        transitions={
-        #                            'succeeded': 'Wait_for_pedestrian_to_cross',
-        #                            'failed': 'failed'})
+        smach.StateMachine.add('Start_pedestrian_detector',
+                               StartPedestrianDetector(),
+                               transitions={
+                                   'succeeded': 'Wait_for_pedestrian_to_cross'})
         smach.StateMachine.add('Wait_for_pedestrian_to_cross',
                                WaitForPedestrianToCross(),
                                transitions={'pedestrian_crossed': 'Move_curve_change_lane_and_stop'})
         smach.StateMachine.add('Move_curve_change_lane_and_stop',
                                MoveCurveChangeLaneAndStop(),
-                               transitions={'succeeded': 'succeeded',
+                               transitions={'succeeded': 'Stop_pedestrian_detector',
                                             'failed': 'failed'})
+        smach.StateMachine.add('Stop_pedestrian_detector',
+                               StopPedestrianDetector(),
+                               transitions={
+                                   'succeeded': 'succeeded'})
     return sm
 
 
