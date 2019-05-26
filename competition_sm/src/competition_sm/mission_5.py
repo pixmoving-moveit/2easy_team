@@ -8,6 +8,7 @@ import smach_ros
 from std_msgs.msg import String
 from geometry_msgs.msg import PoseStamped, TwistStamped
 from follow_waypoints import FollowWaypointsFile
+from dynamic_reconfigure.client import Client
 
 # Stop 1 pose
 # - Translation: [-57.978, 112.837, -1.249]
@@ -39,6 +40,8 @@ class DoUTurnAndGoToStop1Stop2ThenSAndHomeWhileStopping(smach.State):
                                          self._stop_sign_detected_cb,
                                          queue_size=1)
 
+        self.twist_gain_dyn_client = Client('/twist_gains/twist_gains')
+
     def _stop_sign_detected_cb(self, msg):
         self.last_stop = msg.data
 
@@ -67,7 +70,7 @@ class DoUTurnAndGoToStop1Stop2ThenSAndHomeWhileStopping(smach.State):
         curr_x = self.last_pose.pose.position.x
         curr_y = self.last_pose.pose.position.y
 
-        dist = math.hypot(curr_x - stop_1_x, curr_y - stop_1_y)
+        dist = math.hypot(curr_x - x, curr_y - y)
         rospy.loginfo("We are at " + str(round(dist, 2)) + "m")
 
         if abs(dist) < tolerance:
@@ -85,10 +88,13 @@ class DoUTurnAndGoToStop1Stop2ThenSAndHomeWhileStopping(smach.State):
 
         ini_t = time.time()
         rospy.logerr("======== STOPPING FOR 3S ===========")
-        while not rospy.is_shutdown() and (time.time() - ini_t) < 3.0:
-            pub.publish(ts)
-            rospy.sleep(0.02)
+        self.twist_gain_dyn_client.update_configuration({'linear_x_gain': 0.0,
+                                                        'angular_z_gain': 0.0})
+        while not rospy.is_shutdown() and (time.time() - ini_t) < 5.0:
+            rospy.sleep(0.05)
         rospy.loginfo("Done!")
+        self.twist_gain_dyn_client.update_configuration({'linear_x_gain': 1.0,
+                                                        'angular_z_gain': 25.0})
 
     def execute(self, userdata):
         rospy.loginfo('Executing state ' + self.__class__.__name__)
@@ -141,8 +147,8 @@ def get_mission_5_sm():
 
     # Open the container
     with sm:
-        smach.StateMachine.add('Do_U_turn_and_go_to_stop',
-                               DoUTurnAndGoToStop(),
+        smach.StateMachine.add('DoUTurnAndGoToStop1Stop2ThenSAndHomeWhileStopping',
+                               DoUTurnAndGoToStop1Stop2ThenSAndHomeWhileStopping(),
                                transitions={'succeeded': 'succeeded',
                                             'failed': 'failed'})
     return sm

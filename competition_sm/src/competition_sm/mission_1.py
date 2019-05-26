@@ -58,11 +58,7 @@ class MoveUntilTrafficLight(smach.State):
 class WaitForTrafficLightGreenStatus(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['got_green'])
-        self.got_green = False
-        self._green_subscriber = rospy.Subscriber('/traffic_light_status',
-                                                  String,
-                                                  self._traffic_light_status_cb,
-                                                  queue_size=1)
+        pass
 
     def _traffic_light_status_cb(self, msg):
         status = msg.data.upper()
@@ -71,6 +67,11 @@ class WaitForTrafficLightGreenStatus(smach.State):
 
     def execute(self, userdata):
         rospy.loginfo('Executing state ' + self.__class__.__name__)
+        self.got_green = False
+        self._green_subscriber = rospy.Subscriber('/traffic_light_status',
+                                                  String,
+                                                  self._traffic_light_status_cb,
+                                                  queue_size=1)
         # Wait for the traffic signal state detector
         # to tell us the light is green
         rospy.logwarn("Waiting for /traffic_light_status to give GREEN")

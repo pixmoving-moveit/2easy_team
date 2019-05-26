@@ -38,7 +38,7 @@ if __name__ == '__main__':
         smach.StateMachine.add('Mission_4',
                                Mission4,
                                transitions={
-                                   'succeeded': 'Mission_5',
+                                   'succeeded': 'Mission_5_6_7',
                                    'failed': 'failed'})
         smach.StateMachine.add('Mission_5_6_7',
                                Mission5,
