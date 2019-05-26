@@ -12,7 +12,7 @@ class DetectObstacle(smach.State):
         smach.State.__init__(self, outcomes=['obstacle_on_left',
                                              'obstacle_on_right'])
         self.obstacle_side = None
-        self.subs = rospy.Subscriber('/obstacle_side',
+        self.subs = rospy.Subscriber('/obstacle_place',
                                      String,
                                      self._obstacle_side_cb,
                                      queue_size=1)
@@ -25,11 +25,11 @@ class DetectObstacle(smach.State):
         # Wait for the traffic signal state detector
         # to tell us the light is green
         rospy.logwarn("Waiting for /obstacle_side to give left or right")
-        while not rospy.is_shutdown() and self.obstacle_side is not None:
+        while not rospy.is_shutdown() and self.obstacle_side is None:
             rospy.sleep(0.1)
-        if self.obstacle_side.upper() == 'LEFT':
+        if self.obstacle_side.upper() == 'FAR':
             return 'obstacle_on_left'
-        elif self.obstacle_side.upper() == 'RIGHT':
+        elif self.obstacle_side.upper() == 'CLOSE':
             return 'obstacle_on_right'
         else:
             rospy.logerr("Got something weird in /obstacle_side: " +
@@ -37,6 +37,21 @@ class DetectObstacle(smach.State):
             rospy.loginfo("Retrying...")
             self.obstacle_side = None
             self.execute(userdata)
+
+
+class MoveCurve(smach.State):
+    def __init__(self):
+        smach.State.__init__(self, outcomes=['succeeded', 'failed'])
+
+    def execute(self, userdata):
+        rospy.loginfo('Executing state ' + self.__class__.__name__)
+        # Send a goal to our "Move using waypoints" server and wait until
+        # we reach the goal
+        fwf = FollowWaypointsFile('mission_4_curve_to_right_lane.csv',
+            consider_done_on_waypoint_id=40)
+        fwf.wait_to_reach_last_waypoint()
+        del fwf
+        return 'succeeded'
 
 
 class MoveLeft(smach.State):
@@ -47,7 +62,7 @@ class MoveLeft(smach.State):
         rospy.loginfo('Executing state ' + self.__class__.__name__)
         # Send a goal to our "Move using waypoints" server and wait until
         # we reach the goal
-        fwf = FollowWaypointsFile('mission_4_left_lane.csv')
+        fwf = FollowWaypointsFile('mission_4_go_left_lane.csv')
         fwf.wait_to_reach_last_waypoint()
         del fwf
         return 'succeeded'
@@ -61,7 +76,7 @@ class MoveRight(smach.State):
         rospy.loginfo('Executing state ' + self.__class__.__name__)
         # Send a goal to our "Move using waypoints" server and wait until
         # we reach the goal
-        fwf = FollowWaypointsFile('mission_4_right_lane.csv')
+        fwf = FollowWaypointsFile('mission_4_go_right_lane.csv')
         fwf.wait_to_reach_last_waypoint()
         del fwf
         return 'succeeded'
@@ -83,6 +98,11 @@ def get_mission_4_sm():
 
     # Open the container
     with sm:
+        smach.StateMachine.add('Move_curve',
+                               MoveCurve(),
+                               transitions={'succeeded': 'Detect_obstacle_side',
+                                            'failed': 'failed'})
+
         smach.StateMachine.add('Detect_obstacle_side',
                                DetectObstacle(),
                                transitions={

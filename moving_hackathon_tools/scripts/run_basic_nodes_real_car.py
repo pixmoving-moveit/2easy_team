@@ -95,13 +95,17 @@ pose:
   covariance: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
     0.0, 0.0, 0.0, 0.0, 0.0, 0.0]\" --once""",
-    "roslaunch runtime_manager vehicle_socket.launch"
+        "rosrun moving_hackathon_tools start_camera.sh",
+        "roslaunch runtime_manager vehicle_socket.launch",
+        "rosrun moving_hackathon_tools twist_gains.py"
     ]
-
 
     executed_commands = []
     for cmd in commands_list:
-        final_cmd = precommand + cmd
+        if "moving_hackathon_tools" in cmd:
+            final_cmd = cmd
+        else:
+            final_cmd = precommand + cmd
         print("Running: '" + str(final_cmd) + "'")
         running_process = ShellCmd(final_cmd)
         executed_commands.append(running_process)

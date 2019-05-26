@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This system tryes to detect if there is a chinease stop sign :P -->
+
+<launch>
+  <node pkg="stop_detector" type="detector.py" name="stop_detector" output="screen"/>
+</launch>
