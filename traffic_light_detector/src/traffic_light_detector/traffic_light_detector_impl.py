@@ -37,7 +37,7 @@ class TrafficLightDetector(object):
     def __init__(self):
         # Subscribing to the image
         self.reduction_factor = 0.5
-        self.necessary_greens2understand_green = 2
+        self.necessary_greens2understand_green = 20
         self.necessary_reds2understand_red = 0
 
         if (self.reduction_factor >= 1 or self.reduction_factor <= 0):
