@@ -13,6 +13,7 @@ import rospy
 # from std_msgs.msg import String
 from geometry_msgs.msg import Point, Quaternion, Pose, Point, Vector3
 from geometry_msgs.msg import PolygonStamped
+from std_msgs.msg import String
 from ddynamic_reconfigure_python.ddynamic_reconfigure import DDynamicReconfigure
 from sensor_msgs.msg import PointCloud2
 from sensor_msgs.point_cloud2 import read_points
@@ -149,10 +150,9 @@ class CarObstacleDetector(object):
 
         self.pub_object_found_area = rospy.Publisher("/attention_area_detection",
                                               Marker, queue_size=1, latch=True)
-
-        
-    #     self.pub_person_found = rospy.Publisher("/attention_detection",
-    #                                             String, queue_size=1)
+    
+        self.pub_object_found = rospy.Publisher("/obstacle_place",
+                                                    String, queue_size=1)
 
     
     def velodyne_cb(self, pointcloud):
@@ -175,14 +175,14 @@ class CarObstacleDetector(object):
 
         if (self.Area1.get_n_points()):
             pos = self.Area1.get_filtered_position()
-            print "Objet found in area 1"
-            print pos
             self.publish_object_found_area( pos[0], pos[1], pos[2])
+            self.pub_object_found_close_or_far("CLOSE")
+        else:
+            self.pub_object_found_close_or_far("FAR")
 
+        # Not that necessary due to the hacking
         if (self.Area2.get_n_points()):
             pos = self.Area2.get_filtered_position()
-            print "Objet found in area 2"
-            print pos
             self.publish_object_found_area( pos[0], pos[1], pos[2])
 
     def publish_object_found_area(self, px, py, pz):
@@ -203,12 +203,9 @@ class CarObstacleDetector(object):
         self.pub_object_found_area.publish(marker)
 
     
-    # def publish_person_found(self, status):
-    #     rospy.loginfo('Publishing: ' + status)
-    #     self.pub_person_found.publish(status)
-
-  
-
+    def pub_object_found_close_or_far(self, status):
+        rospy.loginfo('Publishing: ' + status)
+        self.pub_object_found.publish(status)
 
 
     def run(self):
