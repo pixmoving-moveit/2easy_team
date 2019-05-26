@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 # Author: Guangwei WANG <gwwang@gzu.edu.cn>
+# Colaborator: Eduardo Ferrera <eferrera@catec.aero>
 # Python
 import numpy as np
 
@@ -73,6 +74,7 @@ class StopDetector(object):
                 self.h_ss = obj.xmax - obj.xmin
                 self.w_ss = obj.ymax - obj.ymin 
                 do_print = True
+                self.pub_traffic_stop_status(self.detect_traffic_stop())
 
         if (do_print):
             img = self.img2yolo
@@ -119,17 +121,21 @@ class StopDetector(object):
         # Publishing again the image to yolo
         # Note: This is not the way to do it, but we are 
         # doing it because we are running out of time
+        
+        # Cropping the image (makes it faster and easier for yolo) and publishing it
+        cv_img = self.bridge.imgmsg_to_cv2(img,desired_encoding="bgr8")
+        # Grabing the size of the image
+        (h, w) = cv_img.shape[:2]
+        rf = self.reduction_factor
+        cv_img = cv_img[int(0):int(rf*h),int(rf*w):int(1*w)]
+        img = self.bridge.cv2_to_imgmsg(cv_img, encoding="bgr8")
+        
         self.img2yolo = img
         self.img2yolo_pub.publish(img)
 
     def run(self):
         rate = rospy.Rate(10)  # Detect at 10hz
         while not rospy.is_shutdown():
-            if self.last_obj is not None:
-                result = self.detect_traffic_stop()
-                self.pub_traffic_stop_status(result)
-                self.last_obj = None
-                self.label_ss = None
             rate.sleep()
 
 
