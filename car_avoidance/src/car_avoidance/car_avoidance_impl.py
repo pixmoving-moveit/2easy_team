@@ -166,8 +166,6 @@ class CarObstacleDetector(object):
         #pointcloud_map 
         cloud_points = list(read_points(
             pointcloud, skip_nans=True, field_names=("x", "y", "z")))
-
-        print "working"
         
         for p in cloud_points:
             self.Area1.check_point(p[0], p[1], p[2])
