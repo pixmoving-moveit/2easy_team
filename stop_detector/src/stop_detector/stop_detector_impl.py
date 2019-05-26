@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 
-# Author: Your name <youremail@gmail.com>
-
-
+# Author: Guangwei WANG <gwwang@gzu.edu.cn>
 # Python
 import numpy as np
 
@@ -11,7 +9,8 @@ import rospy
 from std_msgs.msg import String
 from sensor_msgs.msg import Image
 
-# Other imports
+# Autoware message
+from autoware_msgs.msg import DetectedObjectArray
 
 
 class StopDetector(object):
@@ -25,30 +24,45 @@ class StopDetector(object):
         rospy.loginfo("Publishing traffic stop detections to: " +
                       self.pub.resolved_name)
 
-        # Subscribe to images?
-        self.last_img = None
-        self.img_sub = rospy.Subscriber('/car_camera',
-                                        Image,
-                                        self.img_cb,
-                                        queue_size=1)
-        rospy.loginfo("Subscribing to images at: " +
-                      self.img_sub.resolved_name)
+        # stop_sign status
+        self.last_obj = None
+        self.label_ss = None
+        self.x_ss = None
+        self.y_ss = None
+        self.h_ss = None
+        self.w_ss = None       
 
-    def img_cb(self, img):
-        self.last_img = img
+        self.ped_sub = rospy.Subscriber('detection/image_detector/objects', 
+                                        DetectedObjectArray, self.obj_cb, queue_size=1)
 
-    def detect_traffic_stop(self, image):
+    def obj_cb(self, DetectedObject):   
+        self.ped_label = None
+        self.x = None
+        self.y = None
+        self.h_ss = None
+        self.w_ss = None
+        for obj in DetectedObject.objects:
+            if obj.label == 'stop sign':
+                self.label_ss = obj.label
+                self.x_ss = obj.x
+                self.y_ss = obj.y
+                self.h_ss = obj.height
+                self.w_ss = obj.width
+                # print (self.x_ss)
+                
+        self.last_obj = DetectedObject.objects
+
+    def detect_traffic_stop(self):
         """
         Code that detects the traffic stop signals
         based on ...
         returns 'STOP'
         """
         # Do magic code here
-
-        # if detection is true
-        return 'STOP'
-        # else:
-        # return 'RED'
+        if self.label_ss == 'stop sign' and self.x_ss > 700:
+            return 'STOP'
+        else:
+            return 'GO'
 
     def pub_traffic_stop_status(self, status):
         """
@@ -61,8 +75,11 @@ class StopDetector(object):
     def run(self):
         rate = rospy.Rate(10)  # Detect at 10hz
         while not rospy.is_shutdown():
-            result = self.detect_traffic_stop(self.last_img)
-            self.pub_traffic_stop_status(result)
+            if self.last_obj is not None:
+                result = self.detect_traffic_stop()
+                self.pub_traffic_stop_status(result)
+                self.last_obj = None
+                self.label_ss = None
             rate.sleep()
 
 
