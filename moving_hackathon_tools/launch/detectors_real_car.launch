@@ -3,4 +3,13 @@
     <include 
         file="$(find traffic_light_detector)/launch/traffic_light_detector.launch" />
 
+    <include
+        file="$(find stop_detector)/launch/stop_detector.launch" />
+
+    <include
+        file="$(find pedestrian_detector)/launch/pedestrian_detector.launch" />
+
+    <include
+        file="$(find car_avoidance)/launch/car_avoidance_detector.launch" />
+
 </launch>

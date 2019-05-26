@@ -40,23 +40,23 @@ if __name__ == '__main__':
                                transitions={
                                    'succeeded': 'Mission_5',
                                    'failed': 'failed'})
-        smach.StateMachine.add('Mission_5',
+        smach.StateMachine.add('Mission_5_6_7',
                                Mission5,
-                               transitions={
-                                   'succeeded': 'Mission_6_and_7',
-                                   'failed': 'failed'})
-        smach.StateMachine.add('Mission_6_and_7',
-                               Mission6_7,
                                transitions={
                                    'succeeded': 'succeeded',
                                    'failed': 'failed'})
+        # smach.StateMachine.add('Mission_6_and_7',
+        #                        Mission6_7,
+        #                        transitions={
+        #                            'succeeded': 'succeeded',
+        #                            'failed': 'failed'})
 
     sis = smach_ros.IntrospectionServer('all_missions', sm, '/SM_ROOT')
     sis.start()
 
     sm.execute()
 
-    rospy.spin()
+    # rospy.spin()
     sis.stop()
 
     rospy.loginfo("All mission done!")
