@@ -11,17 +11,17 @@ class DetectObstacle(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['obstacle_on_left',
                                              'obstacle_on_right'])
-        self.obstacle_side = None
-        self.subs = rospy.Subscriber('/obstacle_place',
-                                     String,
-                                     self._obstacle_side_cb,
-                                     queue_size=1)
 
     def _obstacle_side_cb(self, msg):
         self.obstacle_side = msg.data
 
     def execute(self, userdata):
         rospy.loginfo('Executing state ' + self.__class__.__name__)
+        self.obstacle_side = None
+        self.subs = rospy.Subscriber('/obstacle_place',
+                                     String,
+                                     self._obstacle_side_cb,
+                                     queue_size=1)
         # Wait for the traffic signal state detector
         # to tell us the light is green
         rospy.logwarn("Waiting for /obstacle_side to give left or right")
@@ -48,9 +48,9 @@ class MoveCurve(smach.State):
         # Send a goal to our "Move using waypoints" server and wait until
         # we reach the goal
         fwf = FollowWaypointsFile('mission_4_curve_to_right_lane.csv',
-                                  consider_done_on_waypoint_id=40)
+                                  consider_done_on_waypoint_id=38)  # was 40
         fwf.wait_to_reach_last_waypoint()
-        del fwf
+        # del fwf
         return 'succeeded'
 
 

@@ -41,12 +41,6 @@ class StopPedestrianDetector(smach.State):
 class WaitForPedestrianToCross(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['pedestrian_crossed'])
-        self.pedestrian_crossed = False
-        self.saw_pedestrian_once = False
-        self._green_subscriber = rospy.Subscriber('/pedestrian_detection',
-                                                  String,
-                                                  self._pedestrian_status_cb,
-                                                  queue_size=1)
 
     def _pedestrian_status_cb(self, msg):
         status = msg.data.upper()
@@ -57,6 +51,12 @@ class WaitForPedestrianToCross(smach.State):
 
     def execute(self, userdata):
         rospy.loginfo('Executing state ' + self.__class__.__name__)
+        self.pedestrian_crossed = False
+        self.saw_pedestrian_once = False
+        self._green_subscriber = rospy.Subscriber('/pedestrian_detection',
+                                                  String,
+                                                  self._pedestrian_status_cb,
+                                                  queue_size=1)
         # Wait for the traffic signal state detector
         # to tell us the light is green
         rospy.logwarn("Waiting for /pedestrian_detection to give CROSSING")
@@ -100,10 +100,10 @@ def get_mission_2_and_3_sm():
 
     # Open the container
     with sm:
-        smach.StateMachine.add('Start_pedestrian_detector',
-                               StartPedestrianDetector(),
-                               transitions={
-                                   'succeeded': 'Wait_for_pedestrian_to_cross'})
+        # smach.StateMachine.add('Start_pedestrian_detector',
+        #                        StartPedestrianDetector(),
+        #                        transitions={
+        #                            'succeeded': 'Wait_for_pedestrian_to_cross'})
         smach.StateMachine.add('Wait_for_pedestrian_to_cross',
                                WaitForPedestrianToCross(),
                                transitions={'pedestrian_crossed': 'Move_curve_change_lane_and_stop'})
@@ -111,10 +111,10 @@ def get_mission_2_and_3_sm():
                                MoveCurveChangeLaneAndStop(),
                                transitions={'succeeded': 'Stop_pedestrian_detector',
                                             'failed': 'failed'})
-        smach.StateMachine.add('Stop_pedestrian_detector',
-                               StopPedestrianDetector(),
-                               transitions={
-                                   'succeeded': 'succeeded'})
+        # smach.StateMachine.add('Stop_pedestrian_detector',
+        #                        StopPedestrianDetector(),
+        #                        transitions={
+        #                            'succeeded': 'succeeded'})
     return sm
 
 
