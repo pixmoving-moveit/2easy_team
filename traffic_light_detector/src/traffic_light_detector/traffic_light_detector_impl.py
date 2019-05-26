@@ -37,7 +37,7 @@ class TrafficLightDetector(object):
     def __init__(self):
         # Subscribing to the image
         self.reduction_factor = 0.5
-        self.necessary_greens2understand_green = 20
+        self.necessary_greens2understand_green = 30
         self.necessary_reds2understand_red = 0
 
         if (self.reduction_factor >= 1 or self.reduction_factor <= 0):
@@ -73,6 +73,9 @@ class TrafficLightDetector(object):
         self.timer_out_red = 0.0
         self.pub = rospy.Publisher("/traffic_light_status", String, queue_size=1, latch=True)
         rospy.loginfo("Publishing traffic light detections to: " + self.pub.resolved_name)
+
+        # Waiting 5 seconds to send a no traffic light found
+        rospy.Timer(rospy.Duration(5), self.no_traffic_light_cb)
 
     def cropper2yolo_cb(self, img):
         # Cropping the image (makes it faster and easier for yolo) and publishing it
@@ -124,6 +127,17 @@ class TrafficLightDetector(object):
             self.img_green_pub.publish(self.bridge.cv2_to_imgmsg(cv_green_masked,   encoding="bgr8"))
             rospy.loginfo("Sending Images")
             self.detect_traffic_light_status(p_green, p_red)
+
+    def no_traffic_light_cb(self,event):
+        # Sending a black immage saying that it sees nothing
+        h = 400
+        w = 1000
+        image = np.zeros((h,w, 3), np.uint8)
+        image = cv2.putText(
+            image, "No traffic", (int(w*0.25), int(0.3*h)), cv2.FONT_HERSHEY_COMPLEX_SMALL, 4, (255,255,255), 5)
+        image = cv2.putText(
+            image, "light found", (int(w*0.2), int(0.7*h)), cv2.FONT_HERSHEY_COMPLEX_SMALL , 4, (255,255,255), 5)
+        self.img_seg_pub.publish(  self.bridge.cv2_to_imgmsg(image, encoding="bgr8"))
         
     def masked_by_color(self,img, low_mask, high_mask):
         # Note: It does not return a probability, but a number of points in the color
