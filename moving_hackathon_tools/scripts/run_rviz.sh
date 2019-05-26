@@ -2,7 +2,8 @@
 
 set +x
 
-source ~/Autoware/ros/install/local_setup.bash
+# source ~/Autoware/ros/install/local_setup.bash
 
-cd ~/Autoware/ros/src/.config/rviz
-rviz -d default.rviz
+# cd ~/Autoware/ros/src/.config/rviz
+roscd moving_hackathon_tools/rviz
+rviz -d coolconfig.rviz
