@@ -25,7 +25,7 @@ class DetectObstacle(smach.State):
         # Wait for the traffic signal state detector
         # to tell us the light is green
         rospy.logwarn("Waiting for /obstacle_side to give left or right")
-        while not rospy.is_shutdown() and self.obstacle_side is not None:
+        while not rospy.is_shutdown() and self.obstacle_side is None:
             rospy.sleep(0.1)
         if self.obstacle_side.upper() == 'LEFT':
             return 'obstacle_on_left'
