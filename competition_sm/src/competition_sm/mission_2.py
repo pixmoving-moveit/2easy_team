@@ -42,6 +42,7 @@ class WaitForPedestrianToCross(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['pedestrian_crossed'])
         self.pedestrian_crossed = False
+        self.saw_pedestrian_once = False
         self._green_subscriber = rospy.Subscriber('/pedestrian_detection',
                                                   String,
                                                   self._pedestrian_status_cb,
@@ -51,14 +52,19 @@ class WaitForPedestrianToCross(smach.State):
         status = msg.data.upper()
         if 'CLEAR' in status:
             self.pedestrian_crossed = True
+        elif 'CROSSING':
+            self.saw_pedestrian_once = True
 
     def execute(self, userdata):
         rospy.loginfo('Executing state ' + self.__class__.__name__)
         # Wait for the traffic signal state detector
         # to tell us the light is green
+        rospy.logwarn("Waiting for /pedestrian_detection to give CROSSING")
+        while not rospy.is_shutdown() and not self.saw_pedestrian_once:
+            rospy.sleep(0.2)
         rospy.logwarn("Waiting for /pedestrian_detection to give CLEAR")
         while not rospy.is_shutdown() and not self.pedestrian_crossed:
-            rospy.sleep(0.1)
+            rospy.sleep(0.2)
         return 'pedestrian_crossed'
 
 
