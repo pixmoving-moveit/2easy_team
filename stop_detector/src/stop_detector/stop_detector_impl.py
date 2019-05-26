@@ -57,7 +57,7 @@ class StopDetector(object):
         self.img2yolo_pub = rospy.Publisher("/camera0/image_for_yolo", Image, queue_size=1)
         rospy.loginfo("Publishes the image to: /camera0/image_for_yolo")
 
-        self.img_seg_pub = rospy.Publisher("camera0/traffic_light_image", Image, queue_size=1)
+        self.img_seg_pub = rospy.Publisher("camera0/stop_signal_image", Image, queue_size=1)
 
     def yolo1_cb(self, DetectedObject):  
         self.ped_label = None

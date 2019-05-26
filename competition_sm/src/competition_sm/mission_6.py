@@ -8,12 +8,28 @@ from follow_waypoints import FollowWaypointsFile
 import time
 from geometry_msgs.msg import TwistStamped
 
+# Stop 1 pose
+# - Translation: [-57.978, 112.837, -1.249]
+# - Rotation: in Quaternion [-0.017, 0.001, -0.711, 0.703]
+#             in RPY (radian) [-0.026, -0.023, -1.581]
+#             in RPY (degree) [-1.506, -1.330, -90.586]
+
+# Stop 2 pose
+# - Translation: [-53.440, 57.763, 0.672]
+# - Rotation: in Quaternion [-0.038, -0.023, -0.704, 0.709]
+#             in RPY (radian) [-0.021, -0.087, -1.562]
+#             in RPY (degree) [-1.224, -4.979, -89.479]
+
+
+# Check /ndt_pose PoseStamped for being in that place
+# With a radius of 0.5m
+
 
 class DetectStop(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['stop_detected', 'timeout'])
         self.stop_sign_detected = None
-        self.subs = rospy.Subscriber('/stop_sign_detected',
+        self.subs = rospy.Subscriber('/stop_detection_status',
                                      String,
                                      self._stop_sign_detected_cb,
                                      queue_size=1)
@@ -29,9 +45,10 @@ class DetectStop(smach.State):
             "Waiting for /stop_sign_detected to maybe give a detection")
         ini_t = time.time()
         while not rospy.is_shutdown() and \
-                (self.stop_sign_detected is None or self.stop_sign_detected == 'GO') and \
+                (self.stop_sign_detected is None or self.stop_sign_detected != 'STOP') and \
                 (time.time() - ini_t) < 10.0:
             rospy.logerr("waiting for stop sign... time elapsed: " + str(time.time() - ini_t))
+            rospy.loginfo("self.stop_sign_detected is: " + str(self.stop_sign_detected))
             rospy.sleep(0.5)
         rospy.loginfo("finished waiting! got a detection?: " +
                       str(self.stop_sign_detected))
@@ -39,6 +56,7 @@ class DetectStop(smach.State):
             rospy.logwarn("We got timeout!!")
             return 'timeout'
         if self.stop_sign_detected.upper() == 'STOP':
+            rospy.logerr("WE SAW THE STOP SIGN, WE SHOULD GO STOP 3S NOW")
             self.stop_sign_detected = None
             return 'stop_detected'
 
@@ -84,7 +102,7 @@ class StopAtPlace3s(smach.State):
         # Create a timer that effectively spams 0 twist at 50Hz
         timer = rospy.Timer(rospy.Duration(0.02), self.send_0_twist)
         rospy.loginfo("SPAMMING STOP (0 twist to /twist_raw) for 3s")
-        while not rospy.is_shutdown() (and time.time() - ini_t) < 3.0:
+        while not rospy.is_shutdown() and (time.time() - ini_t) < 3.0:
             rospy.sleep(0.2)
         timer.shutdown()
         rospy.loginfo("Done!")

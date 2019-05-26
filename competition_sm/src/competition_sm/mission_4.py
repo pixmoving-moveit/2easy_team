@@ -12,7 +12,7 @@ class DetectObstacle(smach.State):
         smach.State.__init__(self, outcomes=['obstacle_on_left',
                                              'obstacle_on_right'])
         self.obstacle_side = None
-        self.subs = rospy.Subscriber('/obstacle_side',
+        self.subs = rospy.Subscriber('/obstacle_place',
                                      String,
                                      self._obstacle_side_cb,
                                      queue_size=1)
@@ -27,9 +27,9 @@ class DetectObstacle(smach.State):
         rospy.logwarn("Waiting for /obstacle_side to give left or right")
         while not rospy.is_shutdown() and self.obstacle_side is None:
             rospy.sleep(0.1)
-        if self.obstacle_side.upper() == 'LEFT':
+        if self.obstacle_side.upper() == 'FAR':
             return 'obstacle_on_left'
-        elif self.obstacle_side.upper() == 'RIGHT':
+        elif self.obstacle_side.upper() == 'CLOSE':
             return 'obstacle_on_right'
         else:
             rospy.logerr("Got something weird in /obstacle_side: " +
