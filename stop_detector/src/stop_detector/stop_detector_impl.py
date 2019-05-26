@@ -59,6 +59,20 @@ class StopDetector(object):
 
         self.img_seg_pub = rospy.Publisher("camera0/stop_signal_image", Image, queue_size=1)
 
+        # Waiting 5 seconds to send a no stop sign found
+        rospy.Timer(rospy.Duration(5), self.no_traffic_sign_cb)
+
+    def no_traffic_sign_cb(self,event):
+        # Sending a black immage saying that it sees nothing
+        h = 400
+        w = 1000
+        image = np.zeros((h,w, 3), np.uint8)
+        image = cv2.putText(
+            image, "No traffic", (int(w*0.25), int(0.3*h)), cv2.FONT_HERSHEY_COMPLEX_SMALL, 4, (255,255,255), 5)
+        image = cv2.putText(
+            image, "stop found", (int(w*0.2), int(0.7*h)), cv2.FONT_HERSHEY_COMPLEX_SMALL , 4, (255,255,255), 5)
+        self.img_seg_pub.publish(  self.bridge.cv2_to_imgmsg(image, encoding="bgr8"))
+
     def yolo1_cb(self, DetectedObject):  
         self.ped_label = None
         self.x = None
