@@ -17,8 +17,8 @@ class StartTrafficLightDetector(smach.State):
     def execute(self, userdata):
         global detector_process
         rospy.loginfo("Launching detector")
-        detector_process = ShellCmd(
-            "roslaunch traffic_light_detector traffic_light_detector.launch")
+        # detector_process = ShellCmd(
+        #     "roslaunch traffic_light_detector traffic_light_detector.launch")
         # detector_process = ShellCmd("rostopic pub /test std_msgs/String test -r 2")
         return 'succeeded'
 
@@ -29,10 +29,10 @@ class StopTrafficLightDetector(smach.State):
 
     def execute(self, userdata):
         global detector_process
-        if detector_process is not None:
-            rospy.loginfo("Killing detector")
-            if not detector_process.is_done():
-                detector_process.kill()
+        # if detector_process is not None:
+        #     rospy.loginfo("Killing detector")
+        #     if not detector_process.is_done():
+        #         detector_process.kill()
         return 'succeeded'
 
 
