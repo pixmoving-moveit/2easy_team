@@ -27,7 +27,7 @@ print("File with " + str(i) + " lines")
 with open(filename, 'r') as fin:
     r = csv.reader(fin)
     with open(filename + ".new_speed.csv", 'w') as fout:
-        w = csv.writer(fout)
+        w = csv.writer(fout, lineterminator="\n")
         for lno, line in enumerate(r):
             # write header
             if lno == 0:

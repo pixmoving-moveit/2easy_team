@@ -44,7 +44,8 @@ class MoveUntilTrafficLight(smach.State):
         rospy.loginfo('Executing state ' + self.__class__.__name__)
         # Send a goal to our "Move using waypoints" server and wait until
         # we reach the goal
-        fwf = FollowWaypointsFile('mission_1_until_stop.csv')
+        fwf = FollowWaypointsFile(
+            'mission_1_until_stop.csv', consider_done_on_waypoint_id=24)
         fwf.wait_to_reach_last_waypoint()
         fwf.kill()
         del fwf
@@ -86,7 +87,8 @@ class MoveCurve(smach.State):
         rospy.loginfo('Executing state ' + self.__class__.__name__)
         # Send a goal to our "Move using waypoints" server and wait until
         # we reach the goal
-        fwf = FollowWaypointsFile('mission_1_curve_to_pedestrian.csv')
+        fwf = FollowWaypointsFile('mission_1_curve_to_pedestrian.csv',
+                                  consider_done_on_waypoint_id=74)
         fwf.wait_to_reach_last_waypoint()
         fwf.kill()
         del fwf

@@ -8,7 +8,7 @@ import rospy
 
 
 class FollowWaypointsFile(object):
-    def __init__(self, waypoints_csv):
+    def __init__(self, waypoints_csv, consider_done_on_waypoint_id=None):
         rp = RosPack()
         mission_wp_path = rp.get_path(
             'competition_sm') + "/../waypoints_data/missions/"
@@ -19,7 +19,9 @@ class FollowWaypointsFile(object):
                                       " replanning_mode:=False realtime_tuning_mode:=False resample_mode:=True resample_interval:=1 replan_curve_mode:=False overwrite_vmax_mode:=False replan_endpoint_mode:=True velocity_max:=20 radius_thresh:=20 radius_min:=6 velocity_min:=4 accel_limit:=0.5 decel_limit:=0.3 velocity_offset:=4 braking_distance:=5 end_point_offset:=1")
         self.path_select_cmd = ShellCmd(precommand +
                                         "sleep 3; rosrun lattice_planner path_select")
-        self.lane_select_cmd = ShellCmd(precommand + "roslaunch lane_planner lane_select.launch")
+        self.lane_select_cmd = ShellCmd(
+            precommand + "roslaunch lane_planner lane_select.launch")
+        self.consider_done_on_waypoint_id = consider_done_on_waypoint_id
         rospy.sleep(2.0)
         # rospy.sleep(10.0)
         # if "curve" in waypoints_csv:
@@ -49,6 +51,10 @@ class FollowWaypointsFile(object):
         self.last_waypoint_id = len(bw.waypoints) - 2
         rospy.loginfo("Got base_waypoints of len: " +
                       str(self.last_waypoint_id))
+        if self.consider_done_on_waypoint_id:
+            rospy.logwarn("Warning: we will consider done at waypoint id: " +
+                          str(self.consider_done_on_waypoint_id))
+        self.last_waypoint_id = self.consider_done_on_waypoint_id
         self.closest_waypoint = -1
         self.user_callback = callback
 
@@ -66,6 +72,7 @@ class FollowWaypointsFile(object):
                 rospy.loginfo("Current closest waypoint ID " + str(self.closest_waypoint) +
                               " (waiting for " + str(self.last_waypoint_id) + ")")
                 rospy.sleep(0.1)
-            rospy.loginfo("We reached the last waypoint! (" + str(self.closest_waypoint) + "==" + str(self.last_waypoint_id))
+            rospy.loginfo("We reached the last waypoint! (" +
+                          str(self.closest_waypoint) + "==" + str(self.last_waypoint_id))
         else:
             rospy.loginfo("Callback provided, not blocking.")
