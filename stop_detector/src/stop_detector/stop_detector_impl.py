@@ -15,7 +15,7 @@ from autoware_msgs.msg import DetectedObjectArray
 
 class StopDetector(object):
     """
-    Stop Detector based on blabla
+    Stop Detector based on Yolo.
     """
 
     def __init__(self):
@@ -34,6 +34,14 @@ class StopDetector(object):
 
         self.ped_sub = rospy.Subscriber('detection/image_detector/objects', 
                                         DetectedObjectArray, self.obj_cb, queue_size=1)
+
+        # Publishing new images prepared for Yolo
+        self.img_sub = rospy.Subscriber('/camera0/image_raw', Image,                                        self.img2yolo_cb,
+                                        queue_size=1)
+        rospy.loginfo("Subscribing to images at: " + self.img_sub.resolved_name)        
+        self.img2yolo_pub = rospy.Publisher("/camera0/image_for_yolo", Image, queue_size=1)
+        rospy.loginfo("Publishes the image to: /camera0/image_for_yolo")
+
 
     def obj_cb(self, DetectedObject):   
         self.ped_label = None
@@ -71,6 +79,12 @@ class StopDetector(object):
         """
         rospy.loginfo('Publishing: ' + status)
         self.pub.publish(status)
+
+    def img2yolo_cb(self,img):
+        # Publishing again the image to yolo
+        # Note: This is not the way to do it, but we are 
+        # doing it because we are running out of time
+        self.img2yolo_pub.publish(img)
 
     def run(self):
         rate = rospy.Rate(10)  # Detect at 10hz
