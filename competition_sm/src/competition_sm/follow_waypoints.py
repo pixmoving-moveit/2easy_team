@@ -54,7 +54,7 @@ class FollowWaypointsFile(object):
         if self.consider_done_on_waypoint_id:
             rospy.logwarn("Warning: we will consider done at waypoint id: " +
                           str(self.consider_done_on_waypoint_id))
-        self.last_waypoint_id = self.consider_done_on_waypoint_id
+            self.last_waypoint_id = self.consider_done_on_waypoint_id
         self.closest_waypoint = -1
         self.user_callback = callback
 

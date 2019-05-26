@@ -47,7 +47,8 @@ class MoveCurve(smach.State):
         rospy.loginfo('Executing state ' + self.__class__.__name__)
         # Send a goal to our "Move using waypoints" server and wait until
         # we reach the goal
-        fwf = FollowWaypointsFile('mission_4_curve.csv')
+        fwf = FollowWaypointsFile('mission_4_curve_to_right_lane.csv',
+            consider_done_on_waypoint_id=40)
         fwf.wait_to_reach_last_waypoint()
         del fwf
         return 'succeeded'
@@ -61,7 +62,7 @@ class MoveLeft(smach.State):
         rospy.loginfo('Executing state ' + self.__class__.__name__)
         # Send a goal to our "Move using waypoints" server and wait until
         # we reach the goal
-        fwf = FollowWaypointsFile('mission_4_left_lane.csv')
+        fwf = FollowWaypointsFile('mission_4_go_left_lane.csv')
         fwf.wait_to_reach_last_waypoint()
         del fwf
         return 'succeeded'
@@ -75,7 +76,7 @@ class MoveRight(smach.State):
         rospy.loginfo('Executing state ' + self.__class__.__name__)
         # Send a goal to our "Move using waypoints" server and wait until
         # we reach the goal
-        fwf = FollowWaypointsFile('mission_4_right_lane.csv')
+        fwf = FollowWaypointsFile('mission_4_go_right_lane.csv')
         fwf.wait_to_reach_last_waypoint()
         del fwf
         return 'succeeded'

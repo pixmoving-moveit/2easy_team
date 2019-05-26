@@ -29,12 +29,14 @@ class DetectStop(smach.State):
             "Waiting for /stop_sign_detected to maybe give a detection")
         ini_t = time.time()
         while not rospy.is_shutdown() and \
-                self.stop_sign_detected is None or self.stop_sign_detected == 'GO' and \
-                time.time() - ini_t < 10.0:
-            rospy.sleep(0.1)
+                (self.stop_sign_detected is None or self.stop_sign_detected == 'GO') and \
+                (time.time() - ini_t) < 10.0:
+            rospy.logerr("waiting for stop sign... time elapsed: " + str(time.time() - ini_t))
+            rospy.sleep(0.5)
         rospy.loginfo("finished waiting! got a detection?: " +
                       str(self.stop_sign_detected))
-        if self.stop_sign_detected is None or self.stop_sign_detected == 'GO':
+        if self.stop_sign_detected is None or self.stop_sign_detected.upper() == 'GO':
+            rospy.logwarn("We got timeout!!")
             return 'timeout'
         if self.stop_sign_detected.upper() == 'STOP':
             self.stop_sign_detected = None
@@ -65,6 +67,7 @@ class MoveSCones(smach.State):
         # Send a goal to our "Move using waypoints" server and wait until
         # we reach the goal
         fwf = FollowWaypointsFile('mission_7_s.csv')
+        rospy.sleep(3.0)
         fwf.wait_to_reach_last_waypoint()
         del fwf
         return 'succeeded'
@@ -81,7 +84,7 @@ class StopAtPlace3s(smach.State):
         # Create a timer that effectively spams 0 twist at 50Hz
         timer = rospy.Timer(rospy.Duration(0.02), self.send_0_twist)
         rospy.loginfo("SPAMMING STOP (0 twist to /twist_raw) for 3s")
-        while not rospy.is_shutdown() and time.time() - ini_t < 3.0:
+        while not rospy.is_shutdown() (and time.time() - ini_t) < 3.0:
             rospy.sleep(0.2)
         timer.shutdown()
         rospy.loginfo("Done!")

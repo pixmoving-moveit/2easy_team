@@ -27,6 +27,8 @@ class TwistStampedGains(object):
         self.ddr.add_variable('angular_z_gain',
                               "gain for twist.angular.z",
                               25.0, min=0.0, max=100.0)
+        self.ddr.add_variable("max_z", "max +- angular.z",
+                            6.0, min=0.0, max=20.0)
         self.ddr.start(self.dyn_rec_callback)
 
         self.sub = rospy.Subscriber('/twist_raw_tmp',
@@ -41,6 +43,7 @@ class TwistStampedGains(object):
     def dyn_rec_callback(self, config, level):
         self.linear_x_gain = config['linear_x_gain']
         self.angular_z_gain = config['angular_z_gain']
+        self.max_z = config['max_z']
         rospy.loginfo(
             "TwistStampedGains got a reconfigure callback: " + str(config))
         return config
@@ -49,6 +52,12 @@ class TwistStampedGains(object):
         rospy.loginfo("in z: " + str(msg.twist.angular.z))
         msg.twist.linear.x *= self.linear_x_gain
         msg.twist.angular.z *= self.angular_z_gain
+        if abs(msg.twist.angular.z) > self.max_z:
+            if msg.twist.angular.z >= 0.0:
+                msg.twist.angular.z = self.max_z
+            else:
+                msg.twist.angular.z = - self.max_z
+
         rospy.loginfo("out z: " + str(msg.twist.angular.z))
         self.pub.publish(msg)
 
