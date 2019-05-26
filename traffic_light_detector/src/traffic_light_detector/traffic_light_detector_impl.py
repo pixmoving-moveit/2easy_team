@@ -18,10 +18,14 @@ import cv2
 from cv_bridge import CvBridge, CvBridgeError
 
 # Color boundaries in HSV
-low_red   = np.array([161, 155, 84])
+# low_red   = np.array([161, 155, 84])
+# high_red  = np.array([179, 255, 255])
+# low_green = np.array([30,40,40]) 
+# high_green= np.array([95,240,240]) 
+low_red   = np.array([151, 95, 14])
 high_red  = np.array([179, 255, 255])
-low_green = np.array([30,40,40]) 
-high_green= np.array([95,240,240]) 
+low_green = np.array([36, 93, 14]) 
+high_green= np.array([89, 255, 255]) 
 
 class TrafficLightDetector(object):
     """
