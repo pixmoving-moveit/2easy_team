@@ -34,11 +34,6 @@ class DoUTurnAndGoToStop1Stop2ThenSAndHomeWhileStopping(smach.State):
         self.ndt_pose_sub = rospy.Subscriber('/ndt_pose', PoseStamped,
                                              self.ndt_pose_cb,
                                              queue_size=1)
-        self.last_stop = 'GO'
-        self.stop_sub = rospy.Subscriber('/stop_detection_status',
-                                         String,
-                                         self._stop_sign_detected_cb,
-                                         queue_size=1)
 
         self.twist_gain_dyn_client = Client('/twist_gains/twist_gains')
 
@@ -49,7 +44,10 @@ class DoUTurnAndGoToStop1Stop2ThenSAndHomeWhileStopping(smach.State):
         self.last_pose = msg
 
     def did_we_see_stop(self):
-        if self.last_stop == 'STOP':
+        msg = rospy.wait_for_message('/stop_detection_status',
+                                     String,
+                                     4.0)
+        if msg.data == 'STOP':
             return True
         else:
             return False
@@ -79,22 +77,15 @@ class DoUTurnAndGoToStop1Stop2ThenSAndHomeWhileStopping(smach.State):
             return False
 
     def stop_car_3s(self):
-        pub = rospy.Publisher('/twist_raw',
-                              TwistStamped,
-                              queue_size=1)
-        ts = TwistStamped()
-        ts.twist.linear.x = 0.0
-        ts.twist.angular.z = 0.0
-
         ini_t = time.time()
         rospy.logerr("======== STOPPING FOR 3S ===========")
         self.twist_gain_dyn_client.update_configuration({'linear_x_gain': 0.0,
-                                                        'angular_z_gain': 0.0})
+                                                         'angular_z_gain': 0.0})
         while not rospy.is_shutdown() and (time.time() - ini_t) < 5.0:
             rospy.sleep(0.05)
         rospy.loginfo("Done!")
         self.twist_gain_dyn_client.update_configuration({'linear_x_gain': 1.0,
-                                                        'angular_z_gain': 25.0})
+                                                         'angular_z_gain': 25.0})
 
     def execute(self, userdata):
         rospy.loginfo('Executing state ' + self.__class__.__name__)

@@ -63,19 +63,22 @@ class WaitForTrafficLightGreenStatus(smach.State):
     def _traffic_light_status_cb(self, msg):
         status = msg.data.upper()
         if 'GREEN' in status:
-            self.got_green = True
+            self.num_greens_in_a_row += 1
 
     def execute(self, userdata):
         rospy.loginfo('Executing state ' + self.__class__.__name__)
-        self.got_green = False
+        self.num_greens_in_a_row = 0
         self._green_subscriber = rospy.Subscriber('/traffic_light_status',
                                                   String,
                                                   self._traffic_light_status_cb,
                                                   queue_size=1)
         # Wait for the traffic signal state detector
         # to tell us the light is green
-        rospy.logwarn("Waiting for /traffic_light_status to give GREEN")
-        while not rospy.is_shutdown() and not self.got_green:
+        rospy.logwarn(
+            "Waiting for /traffic_light_status to give GREEN 10 times in a row")
+        while not rospy.is_shutdown() and not self.num_greens_in_a_row >= 10:
+            rospy.loginfo(
+                "Got " + str(self.num_greens_in_a_row) + " greens in a row... (of 10)")
             rospy.sleep(0.1)
         return 'got_green'
 
