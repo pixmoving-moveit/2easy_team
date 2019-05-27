@@ -91,7 +91,8 @@ class DoUTurnAndGoToStop1Stop2ThenSAndHomeWhileStopping(smach.State):
         rospy.loginfo('Executing state ' + self.__class__.__name__)
         # Send a goal to our "Move using waypoints" server and wait until
         # we reach the goal
-        fwf = FollowWaypointsFile('mission_5_6_7.csv')
+        fwf = FollowWaypointsFile('mission_5_6_7.csv',
+                                  consider_done_on_waypoint_id=489)
         rospy.sleep(2.0)
 
         # keep checking for our pose to be in the radius of the first stop signal

@@ -63,7 +63,7 @@ class MoveLeft(smach.State):
         # Send a goal to our "Move using waypoints" server and wait until
         # we reach the goal
         fwf = FollowWaypointsFile('mission_4_go_left_lane.csv',
-                                  consider_done_on_waypoint_id=162)
+                                  consider_done_on_waypoint_id=161)
         rospy.sleep(1.0)
         fwf.wait_to_reach_last_waypoint()
         del fwf
@@ -79,7 +79,7 @@ class MoveRight(smach.State):
         # Send a goal to our "Move using waypoints" server and wait until
         # we reach the goal
         fwf = FollowWaypointsFile('mission_4_go_right_lane.csv',
-                                  consider_done_on_waypoint_id=162)
+                                  consider_done_on_waypoint_id=161)
         rospy.sleep(1.0)
         fwf.wait_to_reach_last_waypoint()
         del fwf
