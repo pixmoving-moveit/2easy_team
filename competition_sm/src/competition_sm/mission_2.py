@@ -109,7 +109,7 @@ def get_mission_2_and_3_sm():
                                transitions={'pedestrian_crossed': 'Move_curve_change_lane_and_stop'})
         smach.StateMachine.add('Move_curve_change_lane_and_stop',
                                MoveCurveChangeLaneAndStop(),
-                               transitions={'succeeded': 'Stop_pedestrian_detector',
+                               transitions={'succeeded': 'succeeded',
                                             'failed': 'failed'})
         # smach.StateMachine.add('Stop_pedestrian_detector',
         #                        StopPedestrianDetector(),

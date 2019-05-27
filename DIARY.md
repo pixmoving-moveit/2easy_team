@@ -80,9 +80,55 @@ From the point of view of the team "2easy". Mainly from the perspective of Sammy
 (going back to work)
 * Wang Guangwei (chinease professor) joins again the team to support his students. He start playing with Yolo
 * Edu creates a second filter to check when there is a pedestrian in the pedestrian area. Is configurable with rqt_reconfigure, so slight changes can be afforded. It is not a generic solution.
-* Wang is capable to detect persons with Yolo. Due to the lack of time and necessary implementation, we make him move to detect the stop signal.
+* Wang is capable to detect persons with Yolo. Due to the lack of time and necessary implementation, we make him move to detect the stop sig
 * The car was tested again by Edu and Sam.
 * Sam test again the state machine.
 * Edu's filter is tested with the real car. It works fuk** amazing!!! (Edu is writting this post)
 * Sam test the car with the keyboard and with the teleoperation keypad
 * Edu and Sam starts to be kind of tired. Some code mistakes where made and idiotic short missundertandings started happening. We decided to go to sleep before make a mistake in the code.
+
+# Day 5
+* Edu oversleeps again the breakfast. 
+* Sam didn't had much time to breakfast. A simple toast is not a good measurement to qualify of the breakfast...skipping it.
+* Edu writtes diary of day 4 while Sam fixes small mistakes in Mission 4. Paths choosen where not right. 
+* Sam also creates a workarround for missions where last way point are not reachen.
+* We hold a daily meeting. We made the review of thigs done and to do and share tasks:
+* Edu will work on the collision avoidance, Sam will keep glueing the state machine, Wang works detecting the stop signal.
+* Students got the task of drawing reference lines for us. The work is perfect to learn ROS, is usefull but if is not accomplished it will not hurt. 
+* Everybody works in their own tasks for an hour. Chinease students get help from Edu to do the task.
+* Edu helps Wang to merge the Stop signal detection. He improves a bit the system to focuss on the right area making things easier for Yolo.
+* Edu remains coding the collision detection
+* Wang & Sam takes a ride with the car and start fixing real road related bugs.
+* We stop to have lunch.
+* Sam detected some problem in threasholds of the light detectors of the mission 1. He uses an old code to tune it.
+* Sam reimplements logic of mission 6.
+* Sam keeps fixing general bugs.
+* Graphic card's resolution was broken for some reason. Sam fixes it and takes the chance to install CUDA.
+* Since we only have till 20:00 to make the first attempt to score, we decide to go with what is in there at 19:15
+* Edu delays the start since the collision avoidance is done
+* At 19:30 we decide to take the attempt anyways and check collision avoidance on directly while scoring.
+
+# First attempt
+* Edu is on the driving place. Sam controls the computer. A camera girl sits on the back. 
+* Sam has prepared a nice view controling with rviz and terminator all possible variables that can go wrong.
+* Start button is pressed. Car drives smooth till the stopping area of the traffic light. 
+* Car stops and waits for the green. As soon as it becomes green, starts moving -> First mission done.
+* Car drives till the pedestrian area. A mannequin waits in one side. The car stops on the line and waits.
+* Helping crew moves the mannequin to make it cross the pedestrian area.
+* As soon as the mannequin is out of the road in a safe place, the car starts moving -> Second mission done.
+* The car turns, takes the left line, and in a smooth way, changes line -> Third mission done.
+* The car turns again and stop to detect obstacles. The detector from Edu works directly: a box in the road was set.
+* The car avoids the box and keeps moving. -> 4th mission done
+* At the middle of the street, some goals went wrong. Edu takes control of the car; 
+* Sam tells Edu to drive before the U-Turn. The car thinks that is doing the mission 5.
+* The car is driven to the start of mission 5, the U-turn. Start button is pressed again.
+* A smooth U-turn is made by the car. -> Mission 5 accomplished.
+* The car arrives to the first stop. It see it and stops.
+* The car arrives to the second stop. It blocks themselves...control is taken again by Edu. -> Mission 6 failed.
+* The car is driven till the S-bahn, and set again in autonomous modus.
+* The S-bahn is compleated nicelly -> Mission 7 accomplished.
+* The car drives till the goal line. Everybody cheers!
+
+* Edu, Sam and Wang fixes small bugs. 
+* They three takes the car for a test. We succesfully compleate the full arena in the test.
+* We go back to the hotel, happy and tired.
